@@ -1,0 +1,96 @@
+name: Issue Tracker
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened, assigned, unassigned, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited, deleted]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set issue details
+        id: issue
+        run: |
+          echo "::set-output name=title::${{ github.event.issue.title }}"
+          echo "::set-output name=number::${{ github.event.issue.number }}"
+          echo "::set-output name=url::${{ github.event.issue.html_url }}"
+          echo "::set-output name=author::${{ github.event.issue.user.login }}"
+          echo "::set-output name=action::${{ github.event.action }}"
+          echo "::set-output name=body::${{ github.event.issue.body }}"
+          echo "::set-output name=repo::${{ github.repository }}"
+
+      - name: Send Discord notification
+        if: github.event_name == 'issues'
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            :ticket: **Issue ${{ steps.issue.outputs.action }}**
+            Repository: ${{ steps.issue.outputs.repo }}
+            Issue #${{ steps.issue.outputs.number }}: ${{ steps.issue.outputs.title }}
+            By: ${{ steps.issue.outputs.author }}
+            ${{ steps.issue.outputs.url }}
+
+      - name: Send Discord notification for comments
+        if: github.event_name == 'issue_comment'
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            :speech_balloon: **New comment ${{ github.event.action }}**
+            Repository: ${{ github.repository }}
+            Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+            Comment by: ${{ github.event.comment.user.login }}
+            ${{ github.event.comment.html_url }}
+
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        if: github.event_name == 'issues' && (github.event.action == 'opened' || github.event.action == 'reopened')
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "[${{ steps.issue.outputs.repo }}] New Issue #${{ steps.issue.outputs.number }}: ${{ steps.issue.outputs.title }}"
+          body: |
+            A new issue has been ${{ steps.issue.outputs.action }} in the ${{ steps.issue.outputs.repo }} repository.
+            
+            Issue #${{ steps.issue.outputs.number }}: ${{ steps.issue.outputs.title }}
+            By: ${{ steps.issue.outputs.author }}
+            
+            ${{ steps.issue.outputs.body }}
+            
+            View the issue: ${{ steps.issue.outputs.url }}
+          to: ${{ secrets.NOTIFICATION_EMAIL }}
+          from: ChronoSync GitHub Bot
+
+  label-issues:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    steps:
+      - name: Initial triage
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['triage-needed']
+            })
+            
+            // Add comment to the issue
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Thank you for opening this issue! Our team will review it shortly.'
+            }) 

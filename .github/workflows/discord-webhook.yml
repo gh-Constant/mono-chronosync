@@ -1,0 +1,96 @@
+name: Discord Notification
+
+on:
+  push:
+    branches: [ '**' ]  # Matches all branches
+  pull_request:
+    branches: [ '**' ]  # Matches all branches
+
+jobs:
+  discord-notification:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # Updated to v4
+        with:
+          fetch-depth: 0  # Fetch all history to get accurate change counts
+
+      - name: Get commit stats for push events
+        if: github.event_name == 'push'
+        id: commit-stats
+        run: |
+          # Get the commit before and after the push
+          BEFORE_SHA="${{ github.event.before }}"
+          AFTER_SHA="${{ github.event.after }}"
+          
+          # Get the stats using git
+          STATS=$(git diff --shortstat $BEFORE_SHA $AFTER_SHA)
+          
+          # Extract numbers using regex
+          if [[ $STATS =~ ([0-9]+)\ file.+\ ([0-9]+)\ insertion.+\ ([0-9]+)\ deletion ]]; then
+            echo "files_changed=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "insertions=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+            echo "deletions=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
+          elif [[ $STATS =~ ([0-9]+)\ file.+\ ([0-9]+)\ insertion ]]; then
+            echo "files_changed=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "insertions=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+            echo "deletions=0" >> $GITHUB_OUTPUT
+          elif [[ $STATS =~ ([0-9]+)\ file.+\ ([0-9]+)\ deletion ]]; then
+            echo "files_changed=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "insertions=0" >> $GITHUB_OUTPUT
+            echo "deletions=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+          elif [[ $STATS =~ ([0-9]+)\ file ]]; then
+            echo "files_changed=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "insertions=0" >> $GITHUB_OUTPUT
+            echo "deletions=0" >> $GITHUB_OUTPUT
+          else
+            echo "files_changed=0" >> $GITHUB_OUTPUT
+            echo "insertions=0" >> $GITHUB_OUTPUT
+            echo "deletions=0" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Stats: $STATS"
+
+      - name: Debug Information (Optional)
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch: ${{ github.ref_name }}"  # Corrected to use github.ref_name
+          echo "Actor: ${{ github.actor }}"
+          echo "Pull Request URL: ${{ github.event.pull_request.html_url }}" # Debugging URL
+          echo "Commit URL: ${{ github.event.head_commit.url }}" # Debugging URL
+          echo "Commit Message: ${{ github.event.head_commit.message }}" # Debugging URL
+          echo "Pull Request Title: ${{ github.event.pull_request.title }}"
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v6.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          content: " "
+          username: "ChronoSync | GITHUB ACTIONS"
+          avatar-url: "https://i.ibb.co/5h0X4nXZ/icon.png"
+          embed-title: "${{ github.event_name == 'pull_request' && format('🔀 New Pull Request: {0}', github.event.pull_request.title) || format('📝 New Push to {0}', github.ref_name) }}"
+          embed-description: |
+            ${{ github.event_name == 'pull_request' && format('🧑‍💻 Opened by {0}', github.actor) || format('🧑‍💻 Pushed by {0}', github.actor) }}
+            
+            🌿 Branch: `${{ github.ref_name }}`
+            📊 Changes: ${{ github.event_name == 'pull_request' && format('`+{0} -{1}`', github.event.pull_request.additions, github.event.pull_request.deletions) || format('`+{0} -{1}` in {2} files', steps.commit-stats.outputs.insertions, steps.commit-stats.outputs.deletions, steps.commit-stats.outputs.files_changed) }}
+            💬 Message: ```${{ github.event.head_commit.message || github.event.pull_request.body }}```
+          embed-url: "${{ github.event_name == 'pull_request' && github.event.pull_request.html_url || github.event.head_commit.url }}"
+          embed-color: "${{ github.event_name == 'pull_request' && '16729344' || '3447003' }}"
+          embed-footer-text: "🔄 ChronoSync Notifications"
+          embed-timestamp: "${{ github.event.head_commit.timestamp || github.event.pull_request.created_at }}"
+          embed-author-name: "${{ github.actor }}"
+          embed-author-url: "https://github.com/${{ github.actor }}"
+          embed-author-icon-url: "https://github.com/${{ github.actor }}.png"
+        continue-on-error: true
+
+      - name: Check Webhook URL (Improved Error Handling)
+        if: ${{ failure() }}  # Run only if previous steps failed
+        run: |
+          if [ -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            echo "::error title=Missing Secret::Discord webhook URL is not set in repository secrets.  Please configure DISCORD_WEBHOOK_URL."
+          else
+            echo "::error::An unknown error occurred during the Discord notification step."
+          fi
