@@ -9,7 +9,13 @@
       "options": {
         "command": "pnpm run build",
         "cwd": "packages/web/backend"
-      }
+      },
+      "dependsOn": [
+        {
+          "projects": ["web-common"],
+          "target": "build"
+        }
+      ]
     },
     "dev": {
       "executor": "nx:run-commands",
@@ -33,5 +39,6 @@
       }
     }
   },
-  "tags": ["app", "web", "backend"]
-} 
+  "tags": ["app", "web", "backend"],
+  "implicitDependencies": ["web"]
+}

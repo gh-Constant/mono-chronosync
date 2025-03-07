@@ -7,15 +7,55 @@
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run build"
-      }
+        "command": "pnpm run build",
+        "cwd": "packages/mobile"
+      },
+      "dependsOn": [
+        {
+          "projects": ["mobile-android", "mobile-ios"],
+          "target": "build"
+        }
+      ]
     },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run dev"
+        "command": "pnpm run dev",
+        "cwd": "packages/mobile"
       }
+    },
+    "dev:android": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run dev:android",
+        "cwd": "packages/mobile"
+      }
+    },
+    "dev:ios": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run dev:ios",
+        "cwd": "packages/mobile"
+      }
+    },
+    "package": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run package",
+        "cwd": "packages/mobile"
+      },
+      "dependsOn": [
+        {
+          "projects": ["mobile-android", "mobile-ios"],
+          "target": "package"
+        }
+      ]
     }
   },
-  "tags": ["app", "mobile"]
+  "tags": ["app", "mobile"],
+  "implicitDependencies": [],
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*"],
+    "production": ["default"]
+  }
 } 

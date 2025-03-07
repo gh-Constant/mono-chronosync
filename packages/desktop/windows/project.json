@@ -1,18 +1,18 @@
 {
-  "name": "web-frontend",
+  "name": "desktop-windows",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "packages/web/frontend",
+  "sourceRoot": "packages/desktop/windows",
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "options": {
         "command": "pnpm run build",
-        "cwd": "packages/web/frontend"
+        "cwd": "packages/desktop/windows"
       },
       "dependsOn": [
         {
-          "projects": ["web-common"],
+          "projects": ["shared"],
           "target": "build"
         }
       ]
@@ -21,17 +21,23 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "pnpm run dev",
-        "cwd": "packages/web/frontend"
+        "cwd": "packages/desktop/windows"
       }
     },
-    "test": {
+    "package": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run test",
-        "cwd": "packages/web/frontend"
-      }
+        "command": "pnpm run package",
+        "cwd": "packages/desktop/windows"
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "self"
+        }
+      ]
     }
   },
-  "tags": ["app", "web", "frontend"],
-  "implicitDependencies": ["web"]
+  "tags": ["app", "desktop", "windows"],
+  "implicitDependencies": ["desktop"]
 }

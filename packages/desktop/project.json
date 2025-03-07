@@ -7,15 +7,62 @@
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run build"
-      }
+        "command": "pnpm run build",
+        "cwd": "packages/desktop"
+      },
+      "dependsOn": [
+        {
+          "projects": ["desktop-windows", "desktop-mac", "desktop-linux"],
+          "target": "build"
+        }
+      ]
     },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run dev"
+        "command": "pnpm run dev",
+        "cwd": "packages/desktop"
       }
+    },
+    "dev:windows": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run dev:windows",
+        "cwd": "packages/desktop"
+      }
+    },
+    "dev:mac": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run dev:mac",
+        "cwd": "packages/desktop"
+      }
+    },
+    "dev:linux": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run dev:linux",
+        "cwd": "packages/desktop"
+      }
+    },
+    "package": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm run package",
+        "cwd": "packages/desktop"
+      },
+      "dependsOn": [
+        {
+          "projects": ["desktop-windows", "desktop-mac", "desktop-linux"],
+          "target": "package"
+        }
+      ]
     }
   },
-  "tags": ["app", "desktop"]
+  "tags": ["app", "desktop"],
+  "implicitDependencies": [],
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*"],
+    "production": ["default"]
+  }
 } 

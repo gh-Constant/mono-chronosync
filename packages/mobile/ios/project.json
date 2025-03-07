@@ -1,18 +1,18 @@
 {
-  "name": "web-frontend",
+  "name": "mobile-ios",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "packages/web/frontend",
+  "sourceRoot": "packages/mobile/ios",
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "options": {
         "command": "pnpm run build",
-        "cwd": "packages/web/frontend"
+        "cwd": "packages/mobile/ios"
       },
       "dependsOn": [
         {
-          "projects": ["web-common"],
+          "projects": ["shared"],
           "target": "build"
         }
       ]
@@ -21,17 +21,23 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "pnpm run dev",
-        "cwd": "packages/web/frontend"
+        "cwd": "packages/mobile/ios"
       }
     },
-    "test": {
+    "package": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run test",
-        "cwd": "packages/web/frontend"
-      }
+        "command": "pnpm run package",
+        "cwd": "packages/mobile/ios"
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "self"
+        }
+      ]
     }
   },
-  "tags": ["app", "web", "frontend"],
-  "implicitDependencies": ["web"]
+  "tags": ["app", "mobile", "ios"],
+  "implicitDependencies": ["mobile"]
 }

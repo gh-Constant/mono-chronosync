@@ -25,5 +25,6 @@
       }
     }
   },
-  "tags": ["lib", "web", "common"]
-} 
+  "tags": ["lib", "web", "common"],
+  "implicitDependencies": []
+}

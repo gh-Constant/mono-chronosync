@@ -39,5 +39,6 @@
       }
     }
   },
-  "tags": ["app", "web"]
-} 
+  "tags": ["app", "web"],
+  "implicitDependencies": []
+}
