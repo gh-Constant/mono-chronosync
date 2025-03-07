@@ -27,6 +27,8 @@ This is a monorepo for the ChronoSync project managed with Nx and PNPM workspace
 ### Installation
 
 ```bash
+pnpm install
+# or
 pnpm setup
 ```
 
@@ -100,6 +102,37 @@ nx run desktop-mac:build
 nx run desktop-linux:build
 nx run mobile-android:build
 nx run mobile-ios:build
+```
+
+### Testing
+
+Run tests for all projects:
+```bash
+pnpm test
+# or
+nx run-many --target=test --all
+```
+
+Run tests for a specific project:
+```bash
+nx run web:test
+# or for other projects
+nx run desktop:test
+nx run mobile:test
+nx run web-frontend:test
+nx run web-backend:test
+# etc.
+```
+
+To run tests only for projects affected by recent changes:
+```bash
+nx affected --target=test
+```
+
+To run tests with the Vitest UI:
+```bash
+nx run web:test --ui
+# or for other projects as needed
 ```
 
 ### Package for Distribution
