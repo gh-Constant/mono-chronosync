@@ -1,0 +1,58 @@
+---
+description: Chronosync Project
+globs: 
+alwaysApply: false
+---
+
+# Chronosync Project
+
+Chronosync is a comprehensive productivity application with the following key features and technical specifications:
+
+## Core Features
+- **Tasks Management**: Create, organize, prioritize, and track tasks
+- **Calendar Integration**: Schedule events, set reminders, and manage time
+- **Cross-Platform Time Tracking**: Synchronize time tracking data between:
+  - Mobile applications
+  - Desktop clients
+  - Web interface
+
+## Technical Stack
+- **Frontend**: Vue.js
+  - Progressive JavaScript framework
+  - Component-based architecture
+  - Reactive data binding
+  - TypeScript may be used for type safety
+  - **Shadcn UI for Vue**:
+    - Collection of reusable and accessible UI components
+    - Customizable design system
+    - Consistent styling and theming
+    - Modern and clean aesthetic
+
+- **Backend**: Express.js
+  - Node.js web application framework
+  - RESTful API design
+  - Authentication and authorization
+  - WebSocket support for real-time updates
+
+- **Database**: PostgreSQL
+  - Relational database management system
+  - Robust data persistence
+  - Complex queries and relationships
+  - JSON support for flexible data structures
+
+## Project Structure
+- `/src` - Vue.js frontend source code
+- `/server` - Express.js backend code
+- `/components` - Reusable Vue components
+- `/views` - Page-level Vue components
+- `/models` - Database models and schemas
+- `/routes` - Express API routes
+- `/controllers` - Business logic handlers
+- `/migrations` - Database migration scripts
+
+## Key Development Considerations
+- Cross-platform data synchronization
+- Offline-first approach for mobile functionality
+- Responsive design for different device sizes
+- Security for user data and authentication
+- Performance optimization for time tracking features

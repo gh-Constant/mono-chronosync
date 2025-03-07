@@ -1,0 +1,29 @@
+{
+  "name": "@chronosync/web",
+  "version": "1.0.0",
+  "description": "Web application for ChronoSync",
+  "private": true,
+  "scripts": {
+    "install:subpackages": "cd common && pnpm install && cd ../backend && pnpm install && cd ../frontend && pnpm install",
+    "dev": "pnpm --filter @chronosync/web run dev:frontend",
+    "dev:frontend": "cd frontend && pnpm run dev",
+    "dev:backend": "cd backend && pnpm run dev",
+    "build": "pnpm run build:frontend && pnpm run build:backend",
+    "build:frontend": "cd frontend && pnpm run build",
+    "build:backend": "cd backend && pnpm run build", 
+    "start": "cd backend && pnpm run start",
+    "test": "pnpm run test:frontend && pnpm run test:backend",
+    "test:frontend": "cd frontend && pnpm run test",
+    "test:backend": "cd backend && pnpm run test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@chronosync/common": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "packageManager": "pnpm@10.6.1"
+}
