@@ -1,0 +1,280 @@
+---
+description: general
+globs: 
+alwaysApply: false
+---
+Here’s your expert-level best practices guide for Express.js and Shadcn UI, covering modern architecture, middleware, performance, security, and frontend integration.
+
+🚀 Expert Guide: Express.js & Shadcn UI Best Practices
+🔍 Analysis Process
+1️⃣ Request Analysis
+Backend: Node.js with Express.js (lightweight, fast server framework)
+Frontend: Shadcn UI (built on Radix UI, integrates well with React)
+Requirements:
+Scalable, modular Express backend
+Secure API routes and middleware setup
+Shadcn UI for high-quality frontend components
+Authentication, error handling, and performance best practices
+⚙️ Express.js Best Practices
+📌 Project Structure (Scalable & Maintainable)
+Organize Express applications into a modular, feature-driven structure:
+
+bash
+Copier
+Modifier
+/express-app
+│── /src
+│   ├── /config         # Config files (DB, environment)
+│   ├── /controllers    # Business logic (e.g., auth, users)
+│   ├── /middlewares    # Custom middleware (auth, logging, etc.)
+│   ├── /models         # Database models
+│   ├── /routes         # Express routers
+│   ├── /services       # External API or business logic
+│   ├── /utils          # Helpers, validation, etc.
+│   ├── app.ts          # Express app setup
+│   ├── server.ts       # Server entry point
+│── .env                # Environment variables
+│── tsconfig.json       # TypeScript config
+│── package.json        # Dependencies
+🛠️ Express Server Setup (Minimal & Secure)
+Use TypeScript for type safety, async/await for clean async handling.
+
+ts
+Copier
+Modifier
+// src/app.ts
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import routes from "./routes";
+
+const app = express();
+
+// 🔒 Security & Performance Middleware
+app.use(helmet()); // Secure HTTP headers
+app.use(cors({ origin: process.env.FRONTEND_URL })); // CORS policy
+app.use(express.json()); // JSON body parser
+app.use(morgan("dev")); // Logging middleware
+
+// 🛤️ API Routes
+app.use("/api", routes);
+
+export default app;
+Server Entry Point
+
+ts
+Copier
+Modifier
+// src/server.ts
+import app from "./app";
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+🛡️ Authentication (JWT & Middleware)
+Secure API routes with JWT-based authentication.
+
+ts
+Copier
+Modifier
+// src/middlewares/authMiddleware.ts
+import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
+
+export const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.header("Authorization")?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET!);
+    next();
+  } catch (err) {
+    res.status(403).json({ message: "Invalid token" });
+  }
+};
+📡 Route Handlers (Modular & Clean)
+Organize API routes properly:
+
+ts
+Copier
+Modifier
+// src/routes/userRoutes.ts
+import express from "express";
+import { getUserProfile } from "../controllers/userController";
+import { authenticateUser } from "../middlewares/authMiddleware";
+
+const router = express.Router();
+
+router.get("/profile", authenticateUser, getUserProfile);
+
+export default router;
+Controller Logic
+
+ts
+Copier
+Modifier
+// src/controllers/userController.ts
+import { Request, Response } from "express";
+
+export const getUserProfile = async (req: Request, res: Response) => {
+  try {
+    res.json({ user: req.user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+🗄️ Database Integration (PostgreSQL & Prisma)
+Use Prisma ORM for database queries.
+
+ts
+Copier
+Modifier
+// src/config/prisma.ts
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+export default prisma;
+Example database query:
+
+ts
+Copier
+Modifier
+// src/services/userService.ts
+import prisma from "../config/prisma";
+
+export const getUserById = async (id: string) => {
+  return await prisma.user.findUnique({ where: { id } });
+};
+🔄 Middleware (Error Handling & Validation)
+Centralized error handling:
+
+ts
+Copier
+Modifier
+// src/middlewares/errorMiddleware.ts
+import { Request, Response, NextFunction } from "express";
+
+export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err);
+  res.status(500).json({ message: err.message });
+};
+Use Zod for request validation:
+
+ts
+Copier
+Modifier
+// src/middlewares/validateMiddleware.ts
+import { Request, Response, NextFunction } from "express";
+import { z, ZodSchema } from "zod";
+
+export const validateRequest = (schema: ZodSchema<any>) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.body);
+    if (!result.success) return res.status(400).json(result.error);
+    next();
+  };
+};
+💻 Shadcn UI Best Practices
+Shadcn UI provides Radix UI-based accessible and customizable components.
+
+📦 Installation
+sh
+Copier
+Modifier
+npx shadcn-ui@latest init
+Example Component (Card UI)
+
+tsx
+Copier
+Modifier
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function Dashboard() {
+  return (
+    <Card className="max-w-lg">
+      <CardHeader>
+        <CardTitle>Welcome Back</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>Your dashboard overview goes here.</p>
+      </CardContent>
+    </Card>
+  );
+}
+🛠️ Custom Theme & Tailwind
+Modify tailwind.config.js:
+
+js
+Copier
+Modifier
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        primary: "#8b5cf6", // Custom purple
+      },
+    },
+  },
+};
+Dark Mode
+
+tsx
+Copier
+Modifier
+import { useTheme } from "next-themes";
+
+export default function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+      Toggle Theme
+    </button>
+  );
+}
+🚀 Full-Stack Integration (Express.js API + Shadcn UI Frontend)
+Example fetching API data from Express backend:
+
+tsx
+Copier
+Modifier
+import { useEffect, useState } from "react";
+
+export default function Profile() {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/user/profile", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    })
+      .then((res) => res.json())
+      .then(setProfile);
+  }, []);
+
+  return <div>{profile ? `Welcome, ${profile.user.name}` : "Loading..."}</div>;
+}
+🔥 Performance & Deployment
+🔹 Performance Optimizations
+Compression: app.use(compression())
+Rate Limiting: express-rate-limit
+Caching: Redis for session storage
+🔹 Deployment
+Deploy Express backend on Railway / Render
+Deploy Shadcn UI frontend on Vercel
+
+✅ Summary
+✅ Express.js
+
+Modular routing
+Secure authentication & validation
+Prisma for database
+Error handling middleware
+✅ Shadcn UI
+
+Accessible, themeable UI
+Dark mode support
+Tailwind integration
+This ensures scalable, secure, and maintainable full-stack apps 🚀.
