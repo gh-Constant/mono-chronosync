@@ -1,0 +1,5 @@
+packages:
+  - 'packages/*'
+  - 'packages/web/backend'
+  - 'packages/web/common'
+  - 'packages/web/frontend' 
