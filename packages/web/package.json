@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "install:subpackages": "cd common && pnpm install && cd ../backend && pnpm install && cd ../frontend && pnpm install",
-    "dev": "pnpm --filter @chronosync/web run dev:frontend",
+    "dev": "pnpm --filter @chronosync/web run dev:frontend && pnpm --filter @chronosync/web run dev:backend",
     "dev:frontend": "cd frontend && pnpm run dev",
     "dev:backend": "cd backend && pnpm run dev",
     "build": "pnpm run build:frontend && pnpm run build:backend",
