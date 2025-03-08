@@ -25,9 +25,9 @@
         <!-- CTA Buttons -->
         <div ref="heroCta" class="max-w-4xl mx-auto text-center mt-8 opacity-0 transform translate-y-8">
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:opacity-90 transition-opacity shadow-md">
+            <router-link to="/auth" class="px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:opacity-90 transition-opacity shadow-md inline-block">
               Start tracking now
-            </button>
+            </router-link>
             <button class="px-8 py-4 rounded-full border border-blue-200 dark:border-white/20 text-blue-600 dark:text-white font-medium hover:bg-blue-50 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
               <play-icon class="w-5 h-5" />
               Watch demo
@@ -319,9 +319,9 @@
             Join over 10,000 professionals who have already boosted their efficiency with Chronosync.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="px-8 py-3 rounded-full bg-white text-purple-600 font-medium hover:opacity-90 transition-opacity">
+            <router-link to="/auth?tab=signup" class="px-8 py-3 rounded-full bg-white text-purple-600 font-medium hover:opacity-90 transition-opacity inline-block">
               Start your free trial
-            </button>
+            </router-link>
             <button class="px-8 py-3 rounded-full border border-white/30 font-medium hover:bg-white/10 transition-colors">
               Schedule a demo
             </button>
@@ -423,6 +423,12 @@ gsap.registerPlugin(ScrollTrigger, MotionPathPlugin)
 
 // State
 const isDarkMode = ref(false)
+
+// Function for cleanup
+const cleanup = () => {
+  ScrollTrigger.getAll().forEach(trigger => trigger.kill(false));
+  gsap.killTweensOf('*');
+};
 
 // Refs for animations
 const heroTitle = ref<HTMLElement | null>(null)
@@ -589,7 +595,14 @@ onMounted(() => {
       scrollTrigger: {
         trigger: featureCards.value,
         start: 'top 80%',
-        toggleActions: 'play none none reverse'
+        toggleActions: 'play none none reverse',
+        onLeaveBack: () => {
+          gsap.to(featureCards.value, { 
+            opacity: 0, 
+            y: 30, 
+            duration: 0.3 // Fast reverse
+          });
+        }
       },
       opacity: 0,
       y: 30,
@@ -600,140 +613,176 @@ onMounted(() => {
 
   // Task section animations
   if (taskContent.value && taskImage.value) {
-    gsap.from(taskContent.value, {
+    const taskTl = gsap.timeline({
       scrollTrigger: {
         trigger: taskContent.value,
         start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      x: -50,
-      duration: 0.6
-    })
-
-    gsap.from(taskImage.value, {
-      scrollTrigger: {
-        trigger: taskImage.value,
-        start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      x: 50,
-      duration: 0.6
-    })
+        toggleActions: 'play none none reverse',
+        onLeaveBack: () => {
+          // Speed up reverse animation
+          gsap.to([taskContent.value, taskImage.value], { 
+            opacity: 0, 
+            duration: 0.3,
+            stagger: 0.1
+          });
+        }
+      }
+    });
+    
+    taskTl
+      .from(taskContent.value, {
+        opacity: 0,
+        x: -50,
+        duration: 0.5
+      })
+      .from(taskImage.value, {
+        opacity: 0,
+        x: 50,
+        duration: 0.5
+      }, "-=0.3"); // Start slightly before the previous animation finishes
   }
 
   // Calendar section animations
   if (calendarContent.value && calendarImage.value) {
-    gsap.from(calendarContent.value, {
+    const calendarTl = gsap.timeline({
       scrollTrigger: {
         trigger: calendarContent.value,
         start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      x: 50,
-      duration: 0.6
-    })
-
-    gsap.from(calendarImage.value, {
-      scrollTrigger: {
-        trigger: calendarImage.value,
-        start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      x: -50,
-      duration: 0.6
-    })
+        toggleActions: 'play none none reverse',
+        onLeaveBack: () => {
+          // Speed up reverse animation
+          gsap.to([calendarContent.value, calendarImage.value], { 
+            opacity: 0, 
+            duration: 0.3,
+            stagger: 0.1
+          });
+        }
+      }
+    });
+    
+    calendarTl
+      .from(calendarContent.value, {
+        opacity: 0,
+        x: 50,
+        duration: 0.5
+      })
+      .from(calendarImage.value, {
+        opacity: 0,
+        x: -50,
+        duration: 0.5
+      }, "-=0.3");
   }
 
   // Sync section animations
   if (syncTitle.value && deviceShowcase.value && syncFeatures.value) {
-    gsap.from(syncTitle.value, {
+    const syncTl = gsap.timeline({
       scrollTrigger: {
         trigger: syncTitle.value,
         start: 'top 80%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      y: 30,
-      duration: 0.6
-    })
-
-    gsap.from(deviceShowcase.value, {
-      scrollTrigger: {
-        trigger: deviceShowcase.value,
-        start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      y: 50,
-      duration: 0.8
-    })
-
-    gsap.from(syncFeatures.value.children, {
-      scrollTrigger: {
-        trigger: syncFeatures.value,
-        start: 'top 80%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      y: 30,
-      duration: 0.6,
-      stagger: 0.2
-    })
+        toggleActions: 'play none none reverse',
+        onLeaveBack: () => {
+          // Speed up reverse animation
+          gsap.to([syncTitle.value, deviceShowcase.value], { 
+            opacity: 0, 
+            duration: 0.3
+          });
+          if (syncFeatures.value) {
+            gsap.to(syncFeatures.value.children, { 
+              opacity: 0, 
+              duration: 0.3,
+              stagger: 0.05
+            });
+          }
+        }
+      }
+    });
+    
+    syncTl
+      .from(syncTitle.value, {
+        opacity: 0,
+        y: 30,
+        duration: 0.5
+      })
+      .from(deviceShowcase.value, {
+        opacity: 0,
+        y: 50,
+        duration: 0.6
+      }, "-=0.2")
+      .from(syncFeatures.value.children, {
+        opacity: 0,
+        y: 30,
+        duration: 0.5,
+        stagger: 0.1
+      }, "-=0.3");
   }
 
   // Focus section animations
   if (focusContent.value && focusImage.value) {
-    gsap.from(focusContent.value, {
+    const focusTl = gsap.timeline({
       scrollTrigger: {
         trigger: focusContent.value,
         start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      x: -50,
-      duration: 0.6
-    })
-
-    gsap.from(focusImage.value, {
-      scrollTrigger: {
-        trigger: focusImage.value,
-        start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      x: 50,
-      duration: 0.6
-    })
+        toggleActions: 'play none none reverse',
+        onLeaveBack: () => {
+          // Speed up reverse animation
+          gsap.to([focusContent.value, focusImage.value], { 
+            opacity: 0, 
+            duration: 0.3,
+            stagger: 0.1
+          });
+        }
+      }
+    });
+    
+    focusTl
+      .from(focusContent.value, {
+        opacity: 0,
+        x: -50,
+        duration: 0.5
+      })
+      .from(focusImage.value, {
+        opacity: 0,
+        x: 50,
+        duration: 0.5
+      }, "-=0.3");
   }
 
   // Testimonials section animations
   if (testimonialsTitle.value && testimonials.value) {
-    gsap.from(testimonialsTitle.value, {
+    const testimonialsTl = gsap.timeline({
       scrollTrigger: {
         trigger: testimonialsTitle.value,
         start: 'top 80%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      y: 30,
-      duration: 0.6
-    })
-
-    gsap.from(testimonials.value.children, {
-      scrollTrigger: {
-        trigger: testimonials.value,
-        start: 'top 70%',
-        toggleActions: 'play none none reverse'
-      },
-      opacity: 0,
-      y: 30,
-      duration: 0.6,
-      stagger: 0.1
-    })
+        toggleActions: 'play none none reverse',
+        onLeaveBack: () => {
+          // Speed up reverse animation
+          gsap.to(testimonialsTitle.value, { 
+            opacity: 0, 
+            duration: 0.3
+          });
+          if (testimonials.value) {
+            gsap.to(testimonials.value.children, { 
+              opacity: 0, 
+              duration: 0.3,
+              stagger: 0.03
+            });
+          }
+        }
+      }
+    });
+    
+    testimonialsTl
+      .from(testimonialsTitle.value, {
+        opacity: 0,
+        y: 30,
+        duration: 0.5
+      })
+      .from(testimonials.value.children, {
+        opacity: 0,
+        y: 30,
+        duration: 0.5,
+        stagger: 0.08 // Reduced stagger time for faster animation
+      }, "-=0.2");
   }
 
   // CTA section animations
@@ -742,19 +791,33 @@ onMounted(() => {
       scrollTrigger: {
         trigger: ctaContent.value,
         start: 'top 80%',
-        toggleActions: 'play none none reverse'
+        toggleActions: 'play none none reverse',
+        onLeaveBack: () => {
+          // Speed up reverse animation
+          gsap.to(ctaContent.value, { 
+            opacity: 0, 
+            y: 30,
+            duration: 0.3
+          });
+        }
       },
       opacity: 0,
       y: 30,
-      duration: 0.6
+      duration: 0.5 // Slightly faster animation
     })
   }
+
+  // Performance improvement: batch DOM read/writes
+  ScrollTrigger.config({ syncInterval: 16 });
+  
+  // Register the cleanup function for later use
+  // (The cleanup function is already defined at the top level of the component)
 });
 
 // Clean up function
 onBeforeUnmount(() => {
-  // Kill all GSAP animations
-  gsap.killTweensOf('*');
+  // Call our cleanup function to properly kill all animations
+  cleanup();
 })
 </script>
 

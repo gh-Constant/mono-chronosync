@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { SunIcon, MoonIcon } from 'lucide-vue-next'
+import { useThemeStore } from '@/stores/theme'
 
 interface NavItem {
   name: string
@@ -10,14 +11,7 @@ interface NavItem {
 
 const router = useRouter()
 const isOpen = ref(false)
-
-defineProps<{
-  isDarkMode: boolean
-}>()
-
-defineEmits<{
-  'update:isDarkMode': [value: boolean]
-}>()
+const themeStore = useThemeStore()
 
 const navItems: NavItem[] = [
   { name: 'Home', path: '/' },
@@ -69,31 +63,31 @@ router.afterEach(() => {
           
           <!-- Dark mode toggle -->
           <button
-            @click="$emit('update:isDarkMode', !isDarkMode)"
+            @click="themeStore.toggleDarkMode()"
             class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            :aria-label="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+            :aria-label="themeStore.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
           >
-            <sun-icon v-if="isDarkMode" class="w-5 h-5" />
+            <sun-icon v-if="themeStore.isDarkMode" class="w-5 h-5" />
             <moon-icon v-else class="w-5 h-5" />
           </button>
 
-          <a
-            href="#"
+          <router-link
+            to="/auth"
             class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
           >
             Get Started
-          </a>
+          </router-link>
         </div>
 
         <!-- Mobile menu button and dark mode toggle -->
         <div class="flex items-center sm:hidden">
           <!-- Dark mode toggle -->
           <button
-            @click="$emit('update:isDarkMode', !isDarkMode)"
+            @click="themeStore.toggleDarkMode()"
             class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-            :aria-label="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+            :aria-label="themeStore.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
           >
-            <sun-icon v-if="isDarkMode" class="w-5 h-5" />
+            <sun-icon v-if="themeStore.isDarkMode" class="w-5 h-5" />
             <moon-icon v-else class="w-5 h-5" />
           </button>
 
@@ -144,13 +138,13 @@ router.afterEach(() => {
           {{ item.name }}
         </router-link>
         
-        <a
-          href="#"
+        <router-link
+          to="/auth"
           class="block w-full text-center px-4 py-2 mx-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           @click="closeMenu"
         >
           Get Started
-        </a>
+        </router-link>
       </div>
     </div>
   </nav>
