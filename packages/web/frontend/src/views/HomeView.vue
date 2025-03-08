@@ -4,47 +4,37 @@
     <Navbar v-model:isDarkMode="isDarkMode" />
 
     <!-- Hero Section -->
-    <section class="pt-32 pb-20 relative overflow-hidden">
-      <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto text-center mb-16">
-          <h1 ref="heroTitle" class="text-4xl md:text-6xl font-bold mb-6">
-            Sync Your Life, <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">Master Your Time</span>
+    <section class="pt-32 pb-20 relative overflow-hidden bg-white dark:bg-black min-h-screen flex items-center">
+      <!-- Background gradient and effects -->
+      <div class="absolute inset-0">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(120,119,198,0.03)_0%,rgba(0,0,0,0)_100%)]"></div>
+      </div>
+
+      <div class="container mx-auto px-4 relative z-10">
+        <!-- Hero Title -->
+        <div class="max-w-5xl mx-auto text-center">
+          <h1 ref="heroTitle" class="text-6xl md:text-8xl lg:text-9xl font-extrabold mb-8 text-gray-900 dark:text-white opacity-0 transform translate-y-8 tracking-tighter leading-[0.9]">
+            Chrono<span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-500">sync</span>
           </h1>
-          <p ref="heroSubtitle" class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8">
-            The all-in-one productivity platform that adapts to your workflow across all your devices
+          <p ref="heroSubtitle" class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-16 max-w-3xl mx-auto opacity-0 transform translate-y-8 font-light">
+            Master Your Digital Time Across All Your Devices
           </p>
-          <div ref="heroCta" class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium hover:opacity-90 transition-opacity">
-              Start for free
+        </div>
+
+        <!-- CTA Buttons -->
+        <div ref="heroCta" class="max-w-4xl mx-auto text-center mt-8 opacity-0 transform translate-y-8">
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button class="px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:opacity-90 transition-opacity shadow-md">
+              Start tracking now
             </button>
-            <button class="px-8 py-3 rounded-full border border-gray-300 dark:border-gray-700 font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+            <button class="px-8 py-4 rounded-full border border-blue-200 dark:border-white/20 text-blue-600 dark:text-white font-medium hover:bg-blue-50 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
               <play-icon class="w-5 h-5" />
               Watch demo
             </button>
           </div>
         </div>
-        
-        <div ref="heroImage" class="relative max-w-5xl mx-auto opacity-0">
-          <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 rounded-xl blur-3xl"></div>
-          <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-              <div class="flex gap-1.5">
-                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div class="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-            </div>
-            <div class="p-4">
-              <img src="/placeholder.svg" alt="Chronosync Dashboard" class="w-full rounded-lg shadow" />
-            </div>
-          </div>
-        </div>
       </div>
-      
-      <!-- Animated background elements -->
-      <div class="absolute top-1/4 left-10 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl animate-blob"></div>
-      <div class="absolute bottom-1/4 right-10 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 w-64 h-64 bg-pink-600/10 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
     </section>
 
     <!-- Features Overview -->
@@ -416,9 +406,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin'
 import { 
   PlayIcon, CheckIcon, ArrowRightIcon, 
   ClockIcon, LockIcon, StarIcon, TwitterIcon, 
@@ -428,7 +419,7 @@ import {
 } from 'lucide-vue-next'
 import Navbar from '@/components/layout/Navbar.vue'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger, MotionPathPlugin)
 
 // State
 const isDarkMode = ref(false)
@@ -437,7 +428,6 @@ const isDarkMode = ref(false)
 const heroTitle = ref<HTMLElement | null>(null)
 const heroSubtitle = ref<HTMLElement | null>(null)
 const heroCta = ref<HTMLElement | null>(null)
-const heroImage = ref<HTMLElement | null>(null)
 const featureCards = ref<HTMLElement[]>([])
 const taskContent = ref<HTMLElement | null>(null)
 const taskImage = ref<HTMLElement | null>(null)
@@ -560,41 +550,40 @@ const testimonialsList = [
   }
 ]
 
+// Hero animation sequence
+const animateHero = () => {
+  const tl = gsap.timeline({
+    defaults: { ease: 'power3.out' }
+  });
+  
+  // Title and subtitle with split text effect
+  tl.to([heroTitle.value, heroSubtitle.value], {
+    opacity: 1,
+    y: 0,
+    duration: 0.7,
+    stagger: 0.15,
+    ease: 'power2.out'
+  });
+  
+  // Show CTA
+  tl.to(heroCta.value, {
+    opacity: 1,
+    y: 0,
+    duration: 0.6
+  }, '-=0.3');
+}
+
 // Watch for dark mode changes
 watch(isDarkMode, (newValue: boolean) => {
   // Handle dark mode changes
   document.documentElement.classList.toggle('dark', newValue)
 })
 
-// Animations
 onMounted(() => {
-  // Initial hero animations - snappier with shorter durations
-  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-  
-  if (heroTitle.value && heroSubtitle.value && heroCta.value && heroImage.value) {
-    tl.from(heroTitle.value, {
-      opacity: 0,
-      y: 20,
-      duration: 0.4
-    })
-    .from(heroSubtitle.value, {
-      opacity: 0,
-      y: 20,
-      duration: 0.4
-    }, '-=0.2')
-    .from(heroCta.value, {
-      opacity: 0,
-      y: 20,
-      duration: 0.4
-    }, '-=0.2')
-    .from(heroImage.value, {
-      opacity: 0,
-      y: 30,
-      duration: 0.6
-    }, '-=0.2')
-  }
+  // Start hero animation
+  animateHero();
 
-  // Scroll-triggered animations
+  // Features animations
   if (featureCards.value) {
     gsap.from(featureCards.value, {
       scrollTrigger: {
@@ -760,10 +749,54 @@ onMounted(() => {
       duration: 0.6
     })
   }
+});
+
+// Clean up function
+onBeforeUnmount(() => {
+  // Kill all GSAP animations
+  gsap.killTweensOf('*');
 })
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Geist+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --font-geist: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.font-sans {
+  font-family: var(--font-geist);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-geist);
+}
+
+.font-light {
+  font-weight: 300;
+}
+
+.font-normal {
+  font-weight: 400;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-extrabold {
+  font-weight: 800;
+}
+
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
