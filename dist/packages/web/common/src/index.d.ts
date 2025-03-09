@@ -1,4 +1,5 @@
 export * from './interfaces';
+export type { IAppError } from './interfaces';
 export interface User {
     id: string;
     username: string;

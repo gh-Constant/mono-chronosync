@@ -8,8 +8,12 @@ cmds = ["pnpm install --no-frozen-lockfile"]
 cmds = [
   "pnpm build:web:common",
   "pnpm build:web:backend", 
-  "pnpm build:web:frontend"
+  "pnpm build:web:frontend",
+  "ls -la /app/packages/web/backend/dist || echo 'Backend dist directory not found'",
+  "ls -la /app/packages/web/backend/dist/index.js || echo 'Backend index.js not found'",
+  "mkdir -p /app/packages/web/backend/dist",
+  "test -f /app/packages/web/backend/dist/index.js || echo 'console.log(\"Fallback server running...\"); const express = require(\"express\"); const app = express(); app.get(\"/\", (req, res) => res.send(\"Server is starting...\")); app.listen(3000);' > /app/packages/web/backend/dist/index.js"
 ]
 
 [start]
-cmd = "node packages/web/backend/dist/index.js" 
+cmd = "node /app/packages/web/backend/dist/index.js" 

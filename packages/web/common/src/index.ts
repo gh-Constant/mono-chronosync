@@ -3,6 +3,9 @@
 // Export interfaces
 export * from './interfaces';
 
+// Explicit export of the IAppError interface for better TypeScript resolution
+export type { IAppError } from './interfaces';
+
 // Example type definition
 export interface User {
   id: string;
