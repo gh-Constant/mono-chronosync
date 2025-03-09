@@ -23,7 +23,11 @@
     "package:desktop": "nx run desktop:package",
     "package:mobile": "nx run mobile:package",
     "graph": "nx graph",
-    "dev:all": "nx run-many --target=dev --all --parallel"
+    "dev:all": "nx run-many --target=dev --all --parallel",
+    "build:web:frontend": "nx run web-frontend:build",
+    "build:web:backend": "nx run web-backend:build",
+    "build:web:common": "nx run web-common:build",
+    "build:web": "nx run-many --target=build --projects=web-frontend,web-backend,web-common --parallel"
   },
   "keywords": [],
   "author": "",

@@ -1,33 +1,28 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "affected": {
+    "defaultBase": "main"
+  },
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "{projectRoot}/dist"
-      ],
-      "cache": true
+      "inputs": ["production", "^production"]
     },
-    "test": {
-      "cache": true
-    },
-    "dev": {
-      "cache": true
-    },
-    "start": {
-      "cache": false
+    "lint": {
+      "inputs": [
+        "default",
+        "{workspaceRoot}/.eslintrc.json",
+        "{workspaceRoot}/.eslintignore"
+      ]
     }
   },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
-      "!{projectRoot}/**/*.spec.js",
-      "!{projectRoot}/**/*.test.js",
-      "!{projectRoot}/**/*.spec.ts",
-      "!{projectRoot}/**/*.test.ts",
-      "!{projectRoot}/**/*.spec.tsx",
-      "!{projectRoot}/**/*.test.tsx"
+      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json"
     ],
     "sharedGlobals": []
   },
@@ -35,27 +30,12 @@
     "appsDir": "packages",
     "libsDir": "packages"
   },
-  "plugins": [
-    {
-      "plugin": "@nx/eslint/plugin",
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
       "options": {
-        "targetName": "lint"
-      }
-    },
-    {
-      "plugin": "@nx/vite/plugin",
-      "options": {
-        "buildTargetName": "build",
-        "testTargetName": "test",
-        "serveTargetName": "serve",
-        "devTargetName": "dev",
-        "previewTargetName": "preview",
-        "serveStaticTargetName": "serve-static",
-        "typecheckTargetName": "typecheck",
-        "buildDepsTargetName": "build-deps",
-        "watchDepsTargetName": "watch-deps"
+        "cacheableOperations": ["build", "lint", "test"]
       }
     }
-  ],
-  "nxCloudId": "67cb26bb49e9ab7db2d358e5"
+  }
 }

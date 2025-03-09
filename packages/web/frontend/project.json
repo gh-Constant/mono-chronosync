@@ -1,14 +1,14 @@
 {
   "name": "web-frontend",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/web/frontend/src",
   "projectType": "application",
-  "sourceRoot": "packages/web/frontend",
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run build",
-        "cwd": "packages/web/frontend"
+        "cwd": "packages/web/frontend",
+        "command": "vite build"
       },
       "dependsOn": [
         {
@@ -17,21 +17,17 @@
         }
       ]
     },
-    "dev": {
+    "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm run dev",
-        "cwd": "packages/web/frontend"
+        "cwd": "packages/web/frontend",
+        "command": "vite"
       }
     },
-    "test": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run test",
-        "cwd": "packages/web/frontend"
-      }
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
     }
   },
-  "tags": ["app", "web", "frontend"],
-  "implicitDependencies": ["web"]
+  "tags": ["scope:web", "type:frontend"]
 }

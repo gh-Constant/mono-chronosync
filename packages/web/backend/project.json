@@ -1,14 +1,17 @@
 {
   "name": "web-backend",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/web/backend/src",
   "projectType": "application",
-  "sourceRoot": "packages/web/backend",
   "targets": {
     "build": {
-      "executor": "nx:run-commands",
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
       "options": {
-        "command": "pnpm run build",
-        "cwd": "packages/web/backend"
+        "outputPath": "dist/packages/web/backend",
+        "main": "packages/web/backend/src/index.ts",
+        "tsConfig": "packages/web/backend/tsconfig.json",
+        "assets": ["packages/web/backend/*.md"]
       },
       "dependsOn": [
         {
@@ -17,28 +20,16 @@
         }
       ]
     },
-    "dev": {
-      "executor": "nx:run-commands",
+    "serve": {
+      "executor": "@nx/js:node",
       "options": {
-        "command": "pnpm run dev",
-        "cwd": "packages/web/backend"
+        "buildTarget": "web-backend:build"
       }
     },
-    "start": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run start",
-        "cwd": "packages/web/backend"
-      }
-    },
-    "test": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "pnpm run test",
-        "cwd": "packages/web/backend"
-      }
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
     }
   },
-  "tags": ["app", "web", "backend"],
-  "implicitDependencies": ["web"]
+  "tags": ["scope:web", "type:backend"]
 }
