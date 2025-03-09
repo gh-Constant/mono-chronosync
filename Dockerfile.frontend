@@ -6,29 +6,28 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@10.6.1
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY packages/web/frontend/package.json ./packages/web/frontend/
-COPY packages/web/common/package.json ./packages/web/common/
+# Copy root workspace files
+COPY pnpm-*.yaml ./
+COPY package.json ./
+COPY nx.json tsconfig.base.json ./
 
-# Install dependencies
+# Copy packages
+COPY packages/web/frontend ./packages/web/frontend
+COPY packages/web/common ./packages/web/common
+
+# Install dependencies and build
 RUN pnpm install --frozen-lockfile
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN pnpm run build
+RUN pnpm build:web:frontend
 
 # Production stage
 FROM nginx:alpine
 
-# Copy built files from build stage
+# Copy built files
 COPY --from=build /app/packages/web/frontend/dist /usr/share/nginx/html
 
-# Copy nginx configuration
+# Add nginx config
 COPY packages/web/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 3000
 
 CMD ["nginx", "-g", "daemon off;"] 
