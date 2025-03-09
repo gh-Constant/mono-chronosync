@@ -8,7 +8,7 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/packages/web/backend",
+        "outputPath": "packages/web/backend/dist",
         "main": "packages/web/backend/src/index.ts",
         "tsConfig": "packages/web/backend/tsconfig.json",
         "assets": ["packages/web/backend/*.md"]
