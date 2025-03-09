@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@chronosync/common": [
+        "dist/packages/web/common"
+      ]
+    }
+  },
+  "extends": "../../../../../packages/web/backend/tsconfig.json"
+}
