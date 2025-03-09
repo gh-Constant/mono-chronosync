@@ -1,0 +1,2 @@
+[start]
+cmd = "node packages/web/backend/dist/index.js" 

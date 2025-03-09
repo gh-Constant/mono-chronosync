@@ -1,5 +1,8 @@
 // Common types and utilities for ChronoSync
 
+// Export interfaces
+export * from './interfaces';
+
 // Example type definition
 export interface User {
   id: string;
