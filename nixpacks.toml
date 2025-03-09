@@ -1,2 +1,15 @@
+[phases.setup]
+cmds = ["npm install -g pnpm@10.6.1"]
+
+[phases.install]
+cmds = ["pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = [
+  "pnpm build:web:common",
+  "pnpm build:web:backend", 
+  "pnpm build:web:frontend"
+]
+
 [start]
 cmd = "node packages/web/backend/dist/index.js" 
