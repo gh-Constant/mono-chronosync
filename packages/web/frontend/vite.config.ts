@@ -13,5 +13,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true
+  },
+  preview: {
+    port: 4173,
+    host: true, // Listen on all addresses
+    strictPort: true
+  },
+  server: {
+    port: 4173,
+    host: true, // Listen on all addresses
+    strictPort: true
   }
 })
