@@ -17,9 +17,23 @@ export default defineConfig({
   server: {
     port: 4173,
     host: true, // Listen on all addresses
-    strictPort: true
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3005',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   preview: {
-    allowedHosts: true
+    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3005',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 })
