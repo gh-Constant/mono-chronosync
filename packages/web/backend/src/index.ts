@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 
 const app = express();
-const port = Number(process.env.PORT) || 3000;
+const port = Number(process.env.PORT) || 3005;
 
 console.log('Starting server with configuration:');
 console.log(`Port: ${port}`);
