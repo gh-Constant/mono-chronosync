@@ -24,6 +24,13 @@
         "command": "vite"
       }
     },
+    "serve-prod": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/web/frontend",
+        "command": "vite preview --host 0.0.0.0 --port $PORT --base /"
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"]
