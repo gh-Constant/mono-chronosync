@@ -8,7 +8,7 @@
       "executor": "@nx/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/web/backend/dist",
+        "outputPath": "dist/packages/web/backend",
         "main": "packages/web/backend/src/index.ts",
         "tsConfig": "packages/web/backend/tsconfig.json",
         "assets": ["packages/web/backend/*.md"]
@@ -25,6 +25,13 @@
       "options": {
         "buildTarget": "web-backend:build"
       }
+    },
+    "start": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "web-backend:build"
+      },
+      "dependsOn": ["build"]
     },
     "lint": {
       "executor": "@nx/eslint:lint",

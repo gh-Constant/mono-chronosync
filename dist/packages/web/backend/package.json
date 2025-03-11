@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "start": "node dist/packages/web/backend/index.js",
+    "start": "node ../../dist/packages/web/backend/index.js",
     "init-db": "ts-node src/scripts/initDb.ts"
   },
   "dependencies": {
