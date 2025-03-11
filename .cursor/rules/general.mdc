@@ -1,7 +1,7 @@
 ---
 description: general
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 Here’s your expert-level best practices guide for Express.js and Shadcn UI, covering modern architecture, middleware, performance, security, and frontend integration.
 

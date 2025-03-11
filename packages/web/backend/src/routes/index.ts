@@ -1,14 +1,10 @@
 import { Router } from 'express';
+import healthRoutes from './health';
 
 const router = Router();
 
-// Health check endpoint
-router.get('/health', (_, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString()
-  });
-});
+// Mount routes
+router.use('/health', healthRoutes);
 
 // Import and use other route modules here
 // router.use('/auth', require('./auth').default);

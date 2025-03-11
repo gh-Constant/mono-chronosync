@@ -1,15 +1,14 @@
 import express, { Application } from 'express';
-import router from './routes';
+import routes from './routes';
 
 export const createServer = (): Application => {
   const app = express();
-
-  // Body parsing middleware
+  
+  // Basic middleware
   app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
 
-  // API routes
-  app.use('/api', router);
+  // Mount all routes under /api
+  app.use('/api', routes);
 
   return app;
 }; 

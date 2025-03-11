@@ -14,12 +14,12 @@ console.log(`Environment: ${process.env.NODE_ENV}`);
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Connection configuration
-const connectionConfig = {
-  user: process.env.DB_USER || 'postgres',
+export const connectionConfig = {
+  user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'chronosync',
+  database: process.env.DB_NAME,
   ssl: isProduction ? { rejectUnauthorized: false } : false
 };
 
@@ -27,7 +27,7 @@ const connectionConfig = {
 console.log(`Connecting to database at ${connectionConfig.host}:${connectionConfig.port}/${connectionConfig.database}`);
 
 // Create a new pool instance
-const pool = new Pool(connectionConfig);
+export const pool = new Pool(connectionConfig);
 
 // Test the connection
 pool.connect((err, client, release) => {

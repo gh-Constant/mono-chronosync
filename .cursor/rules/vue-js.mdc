@@ -1,6 +1,6 @@
 ---
 description: Vue.js TypeScript Best Practices
-globs: 
+globs: *.vue
 alwaysApply: false
 ---
 

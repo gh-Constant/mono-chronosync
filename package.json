@@ -29,6 +29,7 @@
     "start:web:backend": "nx run web-backend:start",
     "build:web:frontend": "nx run web-frontend:build",
     "build:web:backend": "nx run web-backend:build",
+    "init:db": "nx run web-backend:init-db",
     "build:web:common": "nx run web-common:build",
     "build:web": "nx run-many --target=build --projects=web-frontend,web-backend,web-common --parallel",
     "serve:web:frontend": "serve packages/web/frontend/dist -s -l 3000"

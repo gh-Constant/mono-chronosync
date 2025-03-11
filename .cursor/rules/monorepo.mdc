@@ -1,0 +1,6 @@
+---
+description: Monorepo
+globs: *.ts
+alwaysApply: false
+---
+This project is a mono repository using Nx with a special structure where you have packages. When coding, check if a component (e.g., an interface, utility, or shared logic) is used in both the frontend and backend. If so, place it in the common package and import it from there instead of duplicating it in web/front or web/back.
