@@ -1,5 +1,7 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Load environment variables from .env file in development
 if (process.env.NODE_ENV !== 'production') {
@@ -27,24 +29,29 @@ export const connectionConfig = {
 console.log(`Connecting to database at ${connectionConfig.host}:${connectionConfig.port}/${connectionConfig.database}`);
 
 // Create a new pool instance
-export const pool = new Pool(connectionConfig);
+const pool = new Pool(connectionConfig);
 
-// Test the connection
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('Error connecting to the database:', err.message);
-    return;
-  }
-  console.log('Successfully connected to the database');
-  client?.query('SELECT NOW()', (err, result) => {
-    release();
-    if (err) {
-      console.error('Error executing query:', err.message);
-      return;
-    }
+// Initialize database function
+export const initializeDatabase = async () => {
+  try {
+    console.log('Reading database schema...');
+    const schemaPath = path.join(__dirname, '..', 'models', 'database.sql');
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+
+    console.log('Executing schema...');
+    await pool.query(schema);
+    console.log('Database schema initialized successfully!');
+    
+    // Test the connection
+    const result = await pool.query('SELECT NOW()');
     console.log('Database time:', result.rows[0].now);
-  });
-});
+    
+    return true;
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
+};
 
 // Export the pool for use in other modules
 export default pool;

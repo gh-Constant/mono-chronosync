@@ -12,12 +12,21 @@ router.get('/', (req: Request, res: Response) => {
 
 router.get('/database', async (req: Request, res: Response) => {
   try {
-    const result = await pool.query('SELECT COUNT(*) FROM applications');
+    const [devicesResult, usersResult, applicationsResult] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM devices'),
+      pool.query('SELECT COUNT(*) FROM users'),
+      pool.query('SELECT COUNT(*) FROM applications')
+    ]);
+
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      applicationCount: parseInt(result.rows[0].count),
-      message: 'Successfully connected to database and queried applications table'
+      counts: {
+        devices: parseInt(devicesResult.rows[0].count),
+        users: parseInt(usersResult.rows[0].count),
+        applications: parseInt(applicationsResult.rows[0].count)
+      },
+      message: 'Successfully connected to database and queried tables'
     });
   } catch (error) {
     res.status(500).json({
