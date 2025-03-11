@@ -1,0 +1,6 @@
+---
+description: ssh
+globs: 
+alwaysApply: true
+---
+use ssh chronosync before a command to go in the server

@@ -9,27 +9,45 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Log database connection attempt
-console.log('Initializing database connection...');
-console.log(`Environment: ${process.env.NODE_ENV}`);
+console.log('=== Database Connection Debug ===');
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Host:', process.env.DB_HOST);
+console.log('Port:', process.env.DB_PORT);
+console.log('Database:', process.env.DB_NAME);
+console.log('User:', process.env.DB_USER);
+console.log('SSL Enabled:', process.env.NODE_ENV === 'production');
 
 // Database configuration
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Connection configuration
-export const connectionConfig = {
+const connectionConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || '5432'),
   database: process.env.DB_NAME,
-  ssl: isProduction ? { rejectUnauthorized: false } : false
+  // For Docker internal connections, we need to disable SSL
+  ssl: false
 };
 
-// Log connection details (without sensitive info)
-console.log(`Connecting to database at ${connectionConfig.host}:${connectionConfig.port}/${connectionConfig.database}`);
+// Log full connection config (excluding sensitive data)
+console.log('Connection Config:', {
+  ...connectionConfig,
+  password: '***HIDDEN***'
+});
 
 // Create a new pool instance
-const pool = new Pool(connectionConfig);
+export const pool = new Pool(connectionConfig);
+
+// Add error handler for connection issues
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+});
+
+pool.on('connect', () => {
+  console.log('Successfully connected to database');
+});
 
 // Initialize database function
 export const initializeDatabase = async () => {

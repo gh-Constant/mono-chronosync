@@ -1,10 +1,11 @@
 ---
-description: Chronosync Project
+description: Chronosync Projec
 globs: 
 alwaysApply: true
 ---
 
-THe code you will generate is to work on this project : 
+THe code you will generate is to work on this project : ``
+
 
 # Chronosync Project
 
