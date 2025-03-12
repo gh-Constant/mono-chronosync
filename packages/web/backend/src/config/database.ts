@@ -20,26 +20,20 @@ console.log('SSL Enabled:', process.env.NODE_ENV === 'production');
 // Database configuration
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Use connection string from environment variable
-let connectionString;
-if (isProduction) {
-  connectionString = process.env.DATABASE_URL;
-} else {
-  connectionString = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME,
-  }
-}
+// Connection configuration
+const connectionConfig = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432'),
+  database: process.env.DB_NAME,
+  ssl: false
+};
 
-if (!connectionString) {
-  throw new Error('DATABASE_URL environment variable is not set');
-}
-
-// Create a new pool instance using connection string
-const pool = new Pool({ connectionString: connectionString as string, ssl: false });
+// Create pool based on environment
+const pool = isProduction 
+  ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: false })
+  : new Pool(connectionConfig);
 
 // Initialize database function
 export const initializeDatabase = async () => {
