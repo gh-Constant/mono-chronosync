@@ -39,6 +39,16 @@ const pool = isProduction
 export const initializeDatabase = async () => {
   const client = await pool.connect();
   try {
+    console.log('Checking for schema file...');
+    const schemaPath = path.join(__dirname, '..', 'models', 'database.sql');
+    
+    // Check if schema file exists
+    if (!fs.existsSync(schemaPath)) {
+      throw new Error(`Schema file not found at: ${schemaPath}`);
+    }
+
+    console.log('Schema file found, checking if tables exist...');
+    
     // Check if tables exist
     const tableCheck = await client.query(`
       SELECT EXISTS (
@@ -49,9 +59,9 @@ export const initializeDatabase = async () => {
     `);
 
     if (!tableCheck.rows[0].exists) {
-      console.log('Initializing database schema...');
-      const schemaPath = path.join(__dirname, '..', 'models', 'database.sql');
+      console.log('Tables do not exist, reading schema file...');
       const schema = fs.readFileSync(schemaPath, 'utf8');
+      console.log('Executing schema initialization...');
       await client.query(schema);
       console.log('Database schema initialized successfully!');
     } else {
@@ -59,6 +69,9 @@ export const initializeDatabase = async () => {
     }
   } catch (error) {
     console.error('Error initializing database:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+    }
     throw error;
   } finally {
     client.release();
