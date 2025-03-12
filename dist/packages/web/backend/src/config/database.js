@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.query = exports.initializeDatabase = exports.pool = void 0;
+exports.initializeDatabase = void 0;
 const pg_1 = require("pg");
 const dotenv_1 = __importDefault(require("dotenv"));
 const fs = __importStar(require("fs"));
@@ -62,47 +62,65 @@ const connectionConfig = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || '5432'),
     database: process.env.DB_NAME,
-    // For Docker internal connections, we need to disable SSL
     ssl: false
 };
-// Log full connection config (excluding sensitive data)
-console.log('Connection Config:', {
-    ...connectionConfig,
-    password: '***HIDDEN***'
-});
-// Create a new pool instance
-exports.pool = new pg_1.Pool(connectionConfig);
-// Add error handler for connection issues
-exports.pool.on('error', (err) => {
-    console.error('Unexpected error on idle client', err);
-});
-exports.pool.on('connect', () => {
-    console.log('Successfully connected to database');
-});
+// Create pool based on environment
+const pool = isProduction
+    ? new pg_1.Pool({ connectionString: process.env.DATABASE_URL, ssl: false })
+    : new pg_1.Pool(connectionConfig);
 // Initialize database function
 const initializeDatabase = async () => {
+    const client = await pool.connect();
     try {
-        console.log('Reading database schema...');
+        console.log('Checking for schema file...');
         const schemaPath = path.join(__dirname, '..', 'models', 'database.sql');
-        const schema = fs.readFileSync(schemaPath, 'utf8');
-        console.log('Executing schema...');
-        await exports.pool.query(schema);
-        console.log('Database schema initialized successfully!');
-        // Test the connection
-        const result = await exports.pool.query('SELECT NOW()');
-        console.log('Database time:', result.rows[0].now);
-        return true;
+        // Check if schema file exists
+        if (!fs.existsSync(schemaPath)) {
+            throw new Error(`Schema file not found at: ${schemaPath}`);
+        }
+        console.log('Schema file found, checking if tables exist...');
+        // Check if tables exist
+        const tableCheck = await client.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'applications'
+      );
+    `);
+        if (!tableCheck.rows[0].exists) {
+            console.log('Tables do not exist, reading schema file...');
+            const schema = fs.readFileSync(schemaPath, 'utf8');
+            console.log('Executing schema initialization...');
+            await client.query(schema);
+            console.log('Database schema initialized successfully!');
+        }
+        else {
+            console.log('Database schema already exists');
+        }
     }
     catch (error) {
         console.error('Error initializing database:', error);
+        if (error instanceof Error) {
+            console.error('Error details:', error.message);
+        }
         throw error;
+    }
+    finally {
+        client.release();
     }
 };
 exports.initializeDatabase = initializeDatabase;
-// Export the pool for use in other modules
-exports.default = exports.pool;
-// Helper function to execute queries
-const query = (text, params) => {
-    return exports.pool.query(text, params);
-};
-exports.query = query;
+// Add error handler for connection issues
+pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
+});
+pool.on('connect', async (client) => {
+    console.log('Connected to database, checking initialization...');
+    try {
+        await (0, exports.initializeDatabase)();
+    }
+    catch (error) {
+        console.error('Failed to initialize database:', error);
+    }
+});
+exports.default = pool;

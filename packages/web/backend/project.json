@@ -11,7 +11,14 @@
         "outputPath": "dist/packages/web/backend",
         "main": "packages/web/backend/src/index.ts",
         "tsConfig": "packages/web/backend/tsconfig.json",
-        "assets": ["packages/web/backend/*.md"]
+        "assets": [
+          "packages/web/backend/*.md",
+          {
+            "glob": "**/*.sql",
+            "input": "packages/web/backend/src",
+            "output": "src"
+          }
+        ]
       },
       "dependsOn": [
         {

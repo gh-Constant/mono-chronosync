@@ -24,11 +24,7 @@ router.get('/database', async (req, res) => {
         // Test basic connection first
         const client = await database_1.default.connect();
         try {
-            const [devicesResult, usersResult, applicationsResult] = await Promise.all([
-                client.query('SELECT COUNT(*) FROM devices'),
-                client.query('SELECT COUNT(*) FROM users'),
-                client.query('SELECT COUNT(*) FROM applications')
-            ]);
+            const result = await client.query('SELECT COUNT(*) FROM applications');
             clearTimeout(timeout);
             res.json({
                 status: 'healthy',
@@ -39,11 +35,9 @@ router.get('/database', async (req, res) => {
                     port: process.env.DB_PORT
                 },
                 counts: {
-                    devices: parseInt(devicesResult.rows[0].count),
-                    users: parseInt(usersResult.rows[0].count),
-                    applications: parseInt(applicationsResult.rows[0].count)
+                    applications: parseInt(result.rows[0].count)
                 },
-                message: 'Successfully connected to database and queried tables'
+                message: 'Successfully connected to database and queried applications table'
             });
         }
         finally {
