@@ -83,13 +83,5 @@ pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
 });
 
-pool.on('connect', async (client) => {
-  console.log('Connected to database, checking initialization...');
-  try {
-    await initializeDatabase();
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-  }
-});
-
+// Export the pool
 export default pool;
