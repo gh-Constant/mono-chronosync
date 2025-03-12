@@ -24,11 +24,7 @@ router.get('/database', async (req: Request, res: Response) => {
     const client = await pool.connect();
     
     try {
-      const [devicesResult, usersResult, applicationsResult] = await Promise.all([
-        client.query('SELECT COUNT(*) FROM devices'),
-        client.query('SELECT COUNT(*) FROM users'),
-        client.query('SELECT COUNT(*) FROM applications')
-      ]);
+      const result = await client.query('SELECT COUNT(*) FROM applications');
 
       clearTimeout(timeout);
       
@@ -41,11 +37,9 @@ router.get('/database', async (req: Request, res: Response) => {
           port: process.env.DB_PORT
         },
         counts: {
-          devices: parseInt(devicesResult.rows[0].count),
-          users: parseInt(usersResult.rows[0].count),
-          applications: parseInt(applicationsResult.rows[0].count)
+          applications: parseInt(result.rows[0].count)
         },
-        message: 'Successfully connected to database and queried tables'
+        message: 'Successfully connected to database and queried applications table'
       });
     } finally {
       client.release();
