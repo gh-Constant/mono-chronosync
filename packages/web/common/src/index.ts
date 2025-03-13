@@ -1,10 +1,14 @@
 // Common types and utilities for ChronoSync
 
 // Export interfaces
-export * from './interfaces';
+export * from './interfaces/auth';
 
 // Explicit export of the IAppError interface for better TypeScript resolution
-export type { IAppError } from './interfaces';
+export interface IAppError {
+  message: string;
+  code?: string;
+  status?: number;
+}
 
 // Example type definition
 export interface User {

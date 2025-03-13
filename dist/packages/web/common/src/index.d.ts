@@ -1,5 +1,9 @@
-export * from './interfaces';
-export type { IAppError } from './interfaces';
+export * from './interfaces/auth';
+export interface IAppError {
+    message: string;
+    code?: string;
+    status?: number;
+}
 export interface User {
     id: string;
     username: string;

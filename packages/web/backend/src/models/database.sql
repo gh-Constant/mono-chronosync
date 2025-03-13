@@ -1,6 +1,16 @@
 -- Table Creation (with IF NOT EXISTS)
 
--- Create updated users table first to fix dependencies
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS oauth_accounts;
+DROP TABLE IF EXISTS task_types;
+DROP TABLE IF EXISTS todo_lists;
+DROP TABLE IF EXISTS todo_tasks;
+DROP TABLE IF EXISTS app_types;
+DROP TABLE IF EXISTS applications;
+DROP TABLE IF EXISTS operating_systems;
+DROP TABLE IF EXISTS devices;
+
+-- Create updated users table first to fix dependenciesd
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255),

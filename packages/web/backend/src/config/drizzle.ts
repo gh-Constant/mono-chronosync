@@ -1,15 +1,17 @@
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Load environment variables from .env file in development
+// Load environment variables
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
 // Log database connection attempt
-console.log('=== Database Connection Debug ===');
+console.log('=== Drizzle Database Connection Debug ===');
 console.log('Environment:', process.env.NODE_ENV);
 console.log('Host:', process.env.DB_HOST);
 console.log('Port:', process.env.DB_PORT);
@@ -35,40 +37,50 @@ const pool = isProduction
   ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: false })
   : new Pool(connectionConfig);
 
-// Initialize database function
-export const initializeDatabase = async () => {
+// Create Drizzle instance
+export const db = drizzle(pool);
+
+// Initialize Drizzle function
+export const initializeDrizzle = async () => {
   const client = await pool.connect();
   try {
-    console.log('Checking for schema file...');
-    const schemaPath = path.join(__dirname, '..', 'models', 'database.sql');
+    console.log('Testing Drizzle connection...');
     
-    // Check if schema file exists
-    if (!fs.existsSync(schemaPath)) {
-      throw new Error(`Schema file not found at: ${schemaPath}`);
-    }
-
-    console.log('Schema file found, checking if tables exist...');
+    // Simple query to verify connection
+    await client.query('SELECT NOW()');
+    console.log('Database connection successful');
     
-    // Check if tables exist
+    // Check if we need to initialize the schema
+    console.log('Checking if tables exist...');
     const tableCheck = await client.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public' 
-        AND table_name = 'applications'
+        AND table_name = 'users'
       );
     `);
 
     if (!tableCheck.rows[0].exists) {
-      console.log('Tables do not exist, reading schema file...');
+      console.log('Tables do not exist, initializing schema from SQL file...');
+      
+      // If tables don't exist, run the initialization SQL script
+      const schemaPath = path.join(__dirname, '..', 'models', 'database.sql');
+      
+      // Check if schema file exists
+      if (!fs.existsSync(schemaPath)) {
+        throw new Error(`Schema file not found at: ${schemaPath}`);
+      }
+      
       const schema = fs.readFileSync(schemaPath, 'utf8');
-      console.log('Executing schema initialization...');
       await client.query(schema);
       console.log('Database schema initialized successfully!');
     } else {
       console.log('Database schema already exists');
     }
+    
+    console.log('Drizzle ORM setup complete!');
   } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error('Error initializing Drizzle:', error);
     if (error instanceof Error) {
       console.error('Error details:', error.message);
     }
@@ -83,5 +95,5 @@ pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
 });
 
-// Export the pool
-export default pool;
+// Export pool for raw queries if needed
+export default pool; 

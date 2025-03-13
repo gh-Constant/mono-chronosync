@@ -1,18 +1,27 @@
 import express, { Application } from 'express';
+import cors from 'cors';
 import routes from './routes';
-import { initializeDatabase } from './config/database';
+import { initializeDrizzle } from './config/drizzle';
 
 export const createServer = async (): Promise<Application> => {
   const app = express();
   
-  // Initialize database
+  // Initialize database with Drizzle
   try {
-    await initializeDatabase();
-    console.log('Database initialized successfully');
+    await initializeDrizzle();
+    console.log('Drizzle ORM initialized successfully');
   } catch (error) {
-    console.error('Failed to initialize database:', error);
+    console.error('Failed to initialize Drizzle ORM:', error);
     process.exit(1);
   }
+  
+  // CORS middleware
+  app.use(cors({
+    origin: ['http://localhost:4173', 'http://localhost:5173','https://chronosync.constantsuchet.fr'], // Allow both dev and preview origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  }));
   
   // Basic middleware
   app.use(express.json());

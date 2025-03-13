@@ -18,7 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.VERSION = void 0;
 exports.formatDate = formatDate;
 // Export interfaces
-__exportStar(require("./interfaces"), exports);
+__exportStar(require("./interfaces/auth"), exports);
 // Example utility function
 function formatDate(date) {
     return date.toISOString().split('T')[0];

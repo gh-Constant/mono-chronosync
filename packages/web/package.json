@@ -9,6 +9,7 @@
     "dev:frontend": "cd frontend && pnpm run dev",
     "dev:backend": "cd backend && pnpm run dev",
     "build": "pnpm run build:frontend && pnpm run build:backend",
+    "testjwt": "pnpm --filter @chronosync/web/backend run testjwt",
     "build:frontend": "cd frontend && pnpm run build",
     "build:backend": "cd backend && pnpm run build", 
     "start": "cd backend && pnpm run start",

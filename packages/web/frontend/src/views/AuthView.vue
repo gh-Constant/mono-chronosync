@@ -196,29 +196,36 @@
               
               <!-- Signup Form -->
               <form v-if="activeTab === 'signup'" @submit.prevent="handleSignup" class="space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label for="signup-firstname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">First Name</label>
-                    <input 
-                      id="signup-firstname" 
-                      v-model="signupForm.firstName" 
-                      type="text" 
-                      required
-                      class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-                      placeholder="John"
-                    />
+                <!-- Error Alert -->
+                <div v-if="error" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                        There was an error with your submission
+                      </h3>
+                      <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                        <p v-for="(line, index) in error.split('\n')" :key="index">{{ line }}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label for="signup-lastname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Last Name</label>
-                    <input 
-                      id="signup-lastname" 
-                      v-model="signupForm.lastName" 
-                      type="text" 
-                      required
-                      class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
-                      placeholder="Doe"
-                    />
-                  </div>
+                </div>
+
+                <div>
+                  <label for="signup-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Username</label>
+                  <input 
+                    id="signup-username" 
+                    v-model="signupForm.name"
+                    type="text" 
+                    required
+                    :disabled="isLoading"
+                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all disabled:opacity-50"
+                    placeholder="johndoe"
+                  />
                 </div>
                 
                 <div>
@@ -274,9 +281,10 @@
                 
                 <button 
                   type="submit" 
-                  class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform hover:-translate-y-0.5"
+                  :disabled="isLoading || !signupForm.agreeTerms"
+                  class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Create Account
+                  {{ isLoading ? 'Creating Account...' : 'Create Account' }}
                 </button>
               </form>
             </div>
@@ -314,6 +322,8 @@ import {
 import Navbar from '@/components/layout/Navbar.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 
 // Router and Route
 const router = useRouter()
@@ -321,6 +331,10 @@ const route = useRoute()
 
 // Theme store
 const themeStore = useThemeStore()
+
+// Auth store
+const authStore = useAuthStore()
+const { isLoading, error } = storeToRefs(authStore)
 
 // Active tab state (login or signup)
 const activeTab = ref('login')
@@ -342,26 +356,39 @@ const loginForm = ref({
 
 // Signup form state
 const signupForm = ref({
-  firstName: '',
-  lastName: '',
+  name: '',
   email: '',
   password: '',
   agreeTerms: false
 })
 
 // Form handlers
-const handleLogin = () => {
-  console.log('Login form submitted:', loginForm.value)
-  // In a real app, we would call an API here
-  // For now, redirect to home page
-  router.push('/')
+const handleLogin = async () => {
+  const success = await authStore.login(
+    loginForm.value.email,
+    loginForm.value.password,
+    loginForm.value.rememberMe
+  )
+  
+  if (success) {
+    router.push('/')
+  }
 }
 
-const handleSignup = () => {
-  console.log('Signup form submitted:', signupForm.value)
-  // In a real app, we would call an API here
-  // For now, redirect to home page
-  router.push('/')
+const handleSignup = async () => {
+  if (!signupForm.value.agreeTerms) {
+    return
+  }
+  
+  const success = await authStore.signup(
+    signupForm.value.name,
+    signupForm.value.email,
+    signupForm.value.password
+  )
+  
+  if (success) {
+    router.push('/')
+  }
 }
 
 // Custom Google icon since it's not in lucide-vue-next

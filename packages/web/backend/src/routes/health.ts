@@ -1,5 +1,5 @@
-import pool from '../config/database';
 import { Router, Request, Response } from 'express';
+import pool from '../config/drizzle';
 
 const router = Router();
 
@@ -20,12 +20,13 @@ router.get('/database', async (req: Request, res: Response) => {
   }, 5000);
 
   try {
-    // Test basic connection first
+    // Test basic connection with pool
     const client = await pool.connect();
     
     try {
+      // For health check, use direct pool query for simplicity
       const result = await client.query('SELECT COUNT(*) FROM applications');
-
+      
       clearTimeout(timeout);
       
       res.json({
@@ -39,6 +40,7 @@ router.get('/database', async (req: Request, res: Response) => {
         counts: {
           applications: parseInt(result.rows[0].count)
         },
+        usingDrizzle: true,
         message: 'Successfully connected to database and queried applications table'
       });
     } finally {

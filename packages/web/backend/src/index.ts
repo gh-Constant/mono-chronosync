@@ -1,5 +1,6 @@
 import { createServer } from './server';
-const port = Number(process.env.PORT) || 3000;
+
+const port = Number(process.env.PORT) || 3005;
 
 async function startServer() {
   try {
