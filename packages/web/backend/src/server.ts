@@ -15,10 +15,7 @@ export const createServer = async (): Promise<Application> => {
     process.exit(1);
   }
   
-  // Enable pre-flight requests for all routes
-  app.options('*', cors());
-  
-  // CORS middleware - must be before routes
+  // CORS middleware
   app.use(cors({
     origin: [
       'http://localhost:4173',
@@ -26,19 +23,11 @@ export const createServer = async (): Promise<Application> => {
       'https://chronosync.constantsuchet.fr',
       'https://api.chronosync.constantsuchet.fr'
     ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Requested-With',
-      'Accept',
-      'Origin'
-    ],
-    exposedHeaders: ['Content-Length', 'Content-Type'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
     credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    maxAge: 3600 // 1 hour
+    maxAge: 86400 // 24 hours
   }));
   
   // Basic middleware

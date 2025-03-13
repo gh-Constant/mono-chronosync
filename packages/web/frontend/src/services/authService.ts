@@ -4,6 +4,10 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3005/api';
 
+// Configure axios defaults
+axios.defaults.withCredentials = true;  // Important for CORS with credentials
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/auth/login`, credentials);
