@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import crypto from 'crypto';
-import { JwtPayload } from '../interfaces/auth';
+import { IJwtPayload } from '../interfaces/auth';
 
 /**
  * Generates a random salt
@@ -39,7 +39,7 @@ export const verifyPassword = (
  * @param payload - Data to include in the token
  * @returns JWT token string
  */
-export const generateToken = (payload: JwtPayload): string => {
+export const generateToken = (payload: IJwtPayload): string => {
   const secretKey = process.env.JWT_SECRET;
   
   if (!secretKey) {
@@ -57,7 +57,7 @@ export const generateToken = (payload: JwtPayload): string => {
  * @param token - JWT token to verify
  * @returns Decoded token payload or null if invalid
  */
-export const verifyToken = (token: string): JwtPayload | null => {
+export const verifyToken = (token: string): IJwtPayload | null => {
   const secretKey = process.env.JWT_SECRET;
   
   if (!secretKey) {
@@ -66,7 +66,7 @@ export const verifyToken = (token: string): JwtPayload | null => {
   
   try {
     // @ts-ignore - Ignore TypeScript issue with the secret type
-    return jwt.verify(token, secretKey) as JwtPayload;
+    return jwt.verify(token, secretKey) as IJwtPayload;
   } catch (error) {
     return null;
   }

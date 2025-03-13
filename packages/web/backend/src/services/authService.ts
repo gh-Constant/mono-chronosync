@@ -2,7 +2,8 @@ import { eq } from 'drizzle-orm';
 import { db } from '../config/drizzle';
 import { users } from '../models/schema';
 import { hashPassword, verifyPassword, generateToken, generateVerificationToken, calculateTokenExpiry } from '../utils/auth';
-import { RegisterRequestBody, LoginRequestBody, JwtPayload } from '../interfaces/auth';
+import { RegisterRequestBody, LoginRequestBody, IJwtPayload } from '../interfaces/auth';
+import { JwtPayload } from 'jsonwebtoken';
 
 /**
  * Register a new user
@@ -45,7 +46,7 @@ export const registerUser = async (userData: RegisterRequestBody) => {
     });
 
   // Generate JWT token
-  const payload: JwtPayload = {
+  const payload: IJwtPayload = {
     id: newUser.id,
     email: newUser.email,
     name: newUser.name,
@@ -102,7 +103,7 @@ export const loginUser = async (credentials: LoginRequestBody) => {
   }
 
   // Generate JWT token
-  const payload: JwtPayload = {
+  const payload: IJwtPayload = {
     id: user.id,
     email: user.email,
     name: user.name,
