@@ -15,19 +15,18 @@ export const createServer = async (): Promise<Application> => {
     process.exit(1);
   }
   
-  // CORS middleware
+  // CORS middleware - must be before routes
   app.use(cors({
     origin: [
       'http://localhost:4173',
       'http://localhost:5173',
-      'https://chronosync.constantsuchet.fr',
-      'https://api.chronosync.constantsuchet.fr'
+      'https://chronosync.constantsuchet.fr'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Content-Length', 'Content-Type'],
     credentials: true,
-    maxAge: 86400 // 24 hours
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   }));
   
   // Basic middleware
