@@ -105,16 +105,19 @@
               <div class="mb-6">
                 <div class="grid grid-cols-3 gap-3">
                   <button
+                    @click="handleOAuthLogin('google')"
                     class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
                   >
                     <google-icon class="w-5 h-5" />
                   </button>
                   <button
+                    @click="handleOAuthLogin('apple')"
                     class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
                   >
                     <apple-icon class="w-5 h-5" />
                   </button>
                   <button
+                    @click="handleOAuthLogin('github')"
                     class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
                   >
                     <github-icon class="w-5 h-5" />
@@ -389,6 +392,12 @@ const handleSignup = async () => {
   if (success) {
     router.push('/')
   }
+}
+
+// OAuth login handler
+const handleOAuthLogin = (provider: 'google' | 'github' | 'apple') => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3005/api';
+  window.location.href = `${apiUrl}/auth/${provider}`;
 }
 
 // Custom Google icon since it's not in lucide-vue-next

@@ -1,7 +1,9 @@
 import express, { Application } from 'express';
 import cors from 'cors';
+import passport from 'passport';
 import routes from './routes';
 import { initializeDatabase } from './config/database';
+import { configurePassport } from './config/passport';
 
 export const createServer = async (): Promise<Application> => {
   const app = express();
@@ -35,6 +37,10 @@ export const createServer = async (): Promise<Application> => {
   
   // Basic middleware
   app.use(express.json());
+
+  // Initialize and configure Passport
+  app.use(passport.initialize());
+  configurePassport();
 
   // Mount all routes under /api
   app.use('/api', routes);

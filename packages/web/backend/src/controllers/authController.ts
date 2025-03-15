@@ -85,4 +85,26 @@ export const confirmPasswordReset = async (req: Request, res: Response) => {
     }
     return res.status(500).json({ message: 'Internal server error during password reset' });
   }
+};
+
+/**
+ * OAuth callback handler
+ * @route GET /api/auth/:provider/callback
+ */
+export const oauthCallback = (req: Request, res: Response) => {
+  try {
+    // Passport.js attaches the user object to the request
+    const authData = req.user as { user: any; token: string };
+    
+    if (!authData || !authData.token) {
+      return res.redirect('/login?error=authentication-failed');
+    }
+    
+    // Redirect to frontend with token
+    // In production, you might want to use a more secure method
+    return res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?token=${authData.token}`);
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    return res.redirect('/login?error=server-error');
+  }
 }; 
