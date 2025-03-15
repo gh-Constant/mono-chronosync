@@ -40,13 +40,14 @@ export const login = async (req: Request, res: Response) => {
  * Get current user profile
  * @route GET /api/auth/profile
  */
-export const getProfile = async (req: AuthRequest, res: Response) => {
+export const getProfile = async (req: Request, res: Response) => {
   try {
-    if (!req.user || !req.user.id) {
+    const authReq = req as AuthRequest;
+    if (!authReq.user || !authReq.user.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const user = await authService.getUserById(req.user.id);
+    const user = await authService.getUserById(authReq.user.id);
     return res.status(200).json({ user });
   } catch (error) {
     if (error instanceof Error) {

@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createServer = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
+const passport_1 = __importDefault(require("passport"));
 const routes_1 = __importDefault(require("./routes"));
 const database_1 = require("./config/database");
+const passport_2 = require("./config/passport");
 const createServer = async () => {
     const app = (0, express_1.default)();
     // Initialize database 
@@ -37,6 +39,9 @@ const createServer = async () => {
     app.options('*', (0, cors_1.default)());
     // Basic middleware
     app.use(express_1.default.json());
+    // Initialize and configure Passport
+    app.use(passport_1.default.initialize());
+    (0, passport_2.configurePassport)();
     // Mount all routes under /api
     app.use('/api', routes_1.default);
     return app;

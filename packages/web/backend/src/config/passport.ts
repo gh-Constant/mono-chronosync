@@ -109,7 +109,7 @@ export const configurePassport = () => {
         callbackURL: `${process.env.API_URL}/auth/github/callback`,
         scope: ['user:email']
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (accessToken: string, refreshToken: string, profile: any, done: any) => {
         try {
           // Check if user exists with this provider account
           const existingAccountResult = await query(
@@ -200,9 +200,10 @@ export const configurePassport = () => {
         keyID: process.env.APPLE_KEY_ID || '',
         privateKeyLocation: process.env.APPLE_PRIVATE_KEY_LOCATION || '',
         callbackURL: `${process.env.API_URL}/auth/apple/callback`,
-        scope: ['name', 'email']
+        scope: ['name', 'email'],
+        passReqToCallback: false
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (accessToken: string, refreshToken: string, idToken: string, profile: any, done: any) => {
         try {
           // Apple profile structure is different from Google/GitHub
           const appleId = profile.id;

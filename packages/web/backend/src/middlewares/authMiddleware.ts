@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/auth';
 import { AuthRequest } from '../interfaces/auth';
 
@@ -7,7 +7,7 @@ import { AuthRequest } from '../interfaces/auth';
  * Adds the user object to the request if authenticated
  */
 export const authenticate = (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -32,7 +32,7 @@ export const authenticate = (
   }
 
   // Add user info to request
-  req.user = decoded;
+  (req as AuthRequest).user = decoded;
   next();
 };
 
@@ -41,7 +41,7 @@ export const authenticate = (
  * Adds the user object to the request if authenticated, but continues even if no token is present
  */
 export const optionalAuthenticate = (
-  req: AuthRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -63,7 +63,7 @@ export const optionalAuthenticate = (
   const decoded = verifyToken(token);
   if (decoded) {
     // Add user info to request
-    req.user = decoded;
+    (req as AuthRequest).user = decoded;
   }
   
   next();

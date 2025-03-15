@@ -32,20 +32,34 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const passport_1 = __importDefault(require("passport"));
 const authController = __importStar(require("../controllers/authController"));
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const authValidators_1 = require("../validators/authValidators");
 const router = (0, express_1.Router)();
 // Register a new user
 router.post('/register', (0, authValidators_1.validate)(authValidators_1.registerSchema), authController.register);
-// Login
+// Login user
 router.post('/login', (0, authValidators_1.validate)(authValidators_1.loginSchema), authController.login);
-// Get current user profile (requires authentication)
+// Get current user profile
 router.get('/profile', authMiddleware_1.authenticate, authController.getProfile);
-// Request password reset
+// Password reset request
 router.post('/password-reset/request', (0, authValidators_1.validate)(authValidators_1.passwordResetRequestSchema), authController.requestPasswordReset);
-// Reset password with token
+// Password reset confirmation
 router.post('/password-reset/confirm', (0, authValidators_1.validate)(authValidators_1.passwordResetConfirmSchema), authController.confirmPasswordReset);
+// OAuth routes
+// Google OAuth
+router.get('/google', passport_1.default.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/callback', passport_1.default.authenticate('google', { session: false, failureRedirect: '/login?error=google-auth-failed' }), authController.oauthCallback);
+// GitHub OAuth
+router.get('/github', passport_1.default.authenticate('github', { scope: ['user:email'] }));
+router.get('/github/callback', passport_1.default.authenticate('github', { session: false, failureRedirect: '/login?error=github-auth-failed' }), authController.oauthCallback);
+// Apple OAuth
+router.get('/apple', passport_1.default.authenticate('apple', { scope: ['name', 'email'] }));
+router.get('/apple/callback', passport_1.default.authenticate('apple', { session: false, failureRedirect: '/login?error=apple-auth-failed' }), authController.oauthCallback);
 exports.default = router;

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.confirmPasswordReset = exports.requestPasswordReset = exports.getProfile = exports.login = exports.register = void 0;
+exports.oauthCallback = exports.confirmPasswordReset = exports.requestPasswordReset = exports.getProfile = exports.login = exports.register = void 0;
 const authService = __importStar(require("../services/authService"));
 /**
  * Register a new user
@@ -77,10 +77,11 @@ exports.login = login;
  */
 const getProfile = async (req, res) => {
     try {
-        if (!req.user || !req.user.id) {
+        const authReq = req;
+        if (!authReq.user || !authReq.user.id) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
-        const user = await authService.getUserById(req.user.id);
+        const user = await authService.getUserById(authReq.user.id);
         return res.status(200).json({ user });
     }
     catch (error) {
@@ -124,3 +125,24 @@ const confirmPasswordReset = async (req, res) => {
     }
 };
 exports.confirmPasswordReset = confirmPasswordReset;
+/**
+ * OAuth callback handler
+ * @route GET /api/auth/:provider/callback
+ */
+const oauthCallback = (req, res) => {
+    try {
+        // Passport.js attaches the user object to the request
+        const authData = req.user;
+        if (!authData || !authData.token) {
+            return res.redirect('/login?error=authentication-failed');
+        }
+        // Redirect to frontend with token
+        // In production, you might want to use a more secure method
+        return res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?token=${authData.token}`);
+    }
+    catch (error) {
+        console.error('OAuth callback error:', error);
+        return res.redirect('/login?error=server-error');
+    }
+};
+exports.oauthCallback = oauthCallback;

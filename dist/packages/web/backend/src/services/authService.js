@@ -20,9 +20,9 @@ const registerUser = async (userData) => {
     const verificationToken = (0, auth_1.generateVerificationToken)();
     const tokenExpiry = (0, auth_1.calculateTokenExpiry)(24); // 24 hours
     // Create new user
-    const newUserResult = await (0, database_1.query)(`INSERT INTO users (name, email, "hashedPassword", "verificationToken", "verificationTokenExpires") 
+    const newUserResult = await (0, database_1.query)(`INSERT INTO users (name, email, hashed_password, verification_token, verification_token_expires) 
      VALUES ($1, $2, $3, $4, $5) 
-     RETURNING id, name, email, image, "createdAt"`, [userData.name, userData.email, hashedPassword, verificationToken, tokenExpiry]);
+     RETURNING id, name, email, image, created_at`, [userData.name, userData.email, hashedPassword, verificationToken, tokenExpiry]);
     const newUser = newUserResult.rows[0];
     // Generate JWT token
     const payload = {
@@ -45,7 +45,7 @@ exports.registerUser = registerUser;
  */
 const loginUser = async (credentials) => {
     // Find user by email with explicit field selection
-    const userResult = await (0, database_1.query)(`SELECT id, name, email, "hashedPassword", image, "createdAt" 
+    const userResult = await (0, database_1.query)(`SELECT id, name, email, hashed_password, image, created_at 
      FROM users 
      WHERE email = $1 
      LIMIT 1`, [credentials.email]);
@@ -54,11 +54,11 @@ const loginUser = async (credentials) => {
         throw new Error('Invalid email or password');
     }
     // Verify password
-    if (!user.hashedPassword) {
+    if (!user.hashed_password) {
         throw new Error('This account cannot login with password');
     }
     // Ensure hashedPassword is a string
-    const storedHash = String(user.hashedPassword);
+    const storedHash = String(user.hashed_password);
     const isPasswordValid = (0, auth_1.verifyPassword)(credentials.password, storedHash);
     if (!isPasswordValid) {
         throw new Error('Invalid email or password');
@@ -71,7 +71,7 @@ const loginUser = async (credentials) => {
     };
     const token = (0, auth_1.generateToken)(payload);
     // Return user info without sensitive data
-    const { hashedPassword: _, ...userWithoutSensitiveData } = user;
+    const { hashed_password: _, ...userWithoutSensitiveData } = user;
     return {
         user: userWithoutSensitiveData,
         token,
@@ -84,7 +84,7 @@ exports.loginUser = loginUser;
  * @returns User object without sensitive data
  */
 const getUserById = async (userId) => {
-    const userResult = await (0, database_1.query)(`SELECT id, name, email, image, "emailVerified", "createdAt" 
+    const userResult = await (0, database_1.query)(`SELECT id, name, email, image, email_verified, created_at 
      FROM users 
      WHERE id = $1 
      LIMIT 1`, [userId]);
@@ -113,7 +113,7 @@ const requestPasswordReset = async (email) => {
     const tokenExpiry = (0, auth_1.calculateTokenExpiry)(1); // 1 hour
     // Update user with reset token
     await (0, database_1.query)(`UPDATE users 
-     SET "verificationToken" = $1, "verificationTokenExpires" = $2 
+     SET verification_token = $1, verification_token_expires = $2 
      WHERE id = $3`, [verificationToken, tokenExpiry, user.id]);
     // TODO: Send password reset email (implement in a separate service)
     return { message: 'If your email is registered, you will receive a password reset link' };
@@ -127,20 +127,20 @@ exports.requestPasswordReset = requestPasswordReset;
  */
 const resetPassword = async (token, newPassword) => {
     // Find user by verification token
-    const userResult = await (0, database_1.query)('SELECT * FROM users WHERE "verificationToken" = $1 LIMIT 1', [token]);
+    const userResult = await (0, database_1.query)('SELECT * FROM users WHERE verification_token = $1 LIMIT 1', [token]);
     const user = userResult.rows[0];
     if (!user) {
         throw new Error('Invalid or expired token');
     }
     // Check if token is expired
-    if (!user.verificationTokenExpires || new Date() > user.verificationTokenExpires) {
+    if (!user.verification_token_expires || new Date() > user.verification_token_expires) {
         throw new Error('Token has expired');
     }
     // Generate new salt and hash password
     const hashedPassword = (0, auth_1.hashPassword)(newPassword);
     // Update user password and clear token
     await (0, database_1.query)(`UPDATE users 
-     SET "hashedPassword" = $1, "verificationToken" = NULL, "verificationTokenExpires" = NULL 
+     SET hashed_password = $1, verification_token = NULL, verification_token_expires = NULL 
      WHERE id = $2`, [hashedPassword, user.id]);
     return { message: 'Password has been reset successfully' };
 };
