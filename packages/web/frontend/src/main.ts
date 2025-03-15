@@ -5,6 +5,10 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { authService } from './services/authService'
+
+// Initialize auth service
+authService.initializeAuth()
 
 const app = createApp(App)
 

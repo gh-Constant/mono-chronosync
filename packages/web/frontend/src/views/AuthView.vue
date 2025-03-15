@@ -1,7 +1,6 @@
 <template>
   <div class="font-sans text-gray-900 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 dark:text-white min-h-screen flex flex-col">
-    <!-- Navigation -->
-    <Navbar />
+    <!-- Navigation is now handled by AppLayout -->
 
     <!-- Split Screen Auth Container -->
     <div class="flex flex-1">
@@ -323,7 +322,6 @@ import {
   GithubIcon, ClockIcon, LockIcon, MailIcon, 
   ShieldCheckIcon, AppleIcon 
 } from 'lucide-vue-next'
-import Navbar from '@/components/layout/Navbar.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
 import { useAuthStore } from '@/stores/auth'

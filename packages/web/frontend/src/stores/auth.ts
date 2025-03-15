@@ -89,11 +89,24 @@ export const useAuthStore = defineStore('auth', () => {
     authService.removeToken();
   }
 
-  function checkAuth() {
+  async function checkAuth() {
     const token = authService.getToken();
     if (token) {
-      isAuthenticated.value = true;
-      // TODO: Fetch user profile if needed
+      try {
+        // Fetch user profile
+        const userProfile = await authService.getProfile();
+        user.value = userProfile.user;
+        isAuthenticated.value = true;
+        return true;
+      } catch (err) {
+        // Token might be invalid or expired
+        console.error('Error fetching user profile:', err);
+        logout(); // Clear invalid token
+        return false;
+      }
+    } else {
+      isAuthenticated.value = false;
+      return false;
     }
   }
 

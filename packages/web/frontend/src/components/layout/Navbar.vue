@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { SunIcon, MoonIcon } from 'lucide-vue-next'
+import { SunIcon, MoonIcon, UserIcon, LayoutDashboardIcon } from 'lucide-vue-next'
 import { useThemeStore } from '@/stores/theme'
+import { useAuthStore } from '@/stores/auth'
 
 interface NavItem {
   name: string
@@ -12,12 +13,23 @@ interface NavItem {
 const router = useRouter()
 const isOpen = ref(false)
 const themeStore = useThemeStore()
+const authStore = useAuthStore()
 
-const navItems: NavItem[] = [
-  { name: 'Home', path: '/' },
-  { name: 'Features', path: '/features' },
-  { name: 'About', path: '/about' }
-]
+// Navigation items for authenticated users
+const navItems = computed(() => {
+  const items: NavItem[] = [
+    { name: 'Home', path: '/' }
+  ]
+  
+  // Add authenticated-only routes
+  if (authStore.isAuthenticated) {
+    items.push(
+      { name: 'Dashboard', path: '/dashboard' }
+    )
+  }
+  
+  return items
+})
 
 const closeMenu = () => {
   isOpen.value = false
@@ -27,6 +39,12 @@ const closeMenu = () => {
 router.afterEach(() => {
   closeMenu()
 })
+
+// Handle logout
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/')
+}
 </script>
 
 <template>
@@ -71,7 +89,29 @@ router.afterEach(() => {
             <moon-icon v-else class="w-5 h-5" />
           </button>
 
+          <!-- Profile dropdown for authenticated users -->
+          <div v-if="authStore.isAuthenticated" class="relative">
+            <router-link
+              to="/profile"
+              class="flex items-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-3 py-2 text-sm font-medium transition-colors duration-200"
+            >
+              <user-icon class="w-5 h-5 mr-1" />
+              Profile
+            </router-link>
+          </div>
+
+          <!-- Logout button for authenticated users -->
+          <button
+            v-if="authStore.isAuthenticated"
+            @click="handleLogout"
+            class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+          >
+            Logout
+          </button>
+
+          <!-- Login/Signup button for non-authenticated users -->
           <router-link
+            v-else
             to="/auth"
             class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
           >
@@ -138,7 +178,29 @@ router.afterEach(() => {
           {{ item.name }}
         </router-link>
         
+        <!-- Profile link for authenticated users (mobile) -->
         <router-link
+          v-if="authStore.isAuthenticated"
+          to="/profile"
+          class="block px-3 py-2 text-base font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
+          active-class="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 font-semibold"
+          @click="closeMenu"
+        >
+          Profile
+        </router-link>
+        
+        <!-- Logout button for authenticated users (mobile) -->
+        <button
+          v-if="authStore.isAuthenticated"
+          @click="handleLogout"
+          class="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+        >
+          Logout
+        </button>
+        
+        <!-- Login/Signup button for non-authenticated users (mobile) -->
+        <router-link
+          v-else
           to="/auth"
           class="block w-full text-center px-4 py-2 mx-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           @click="closeMenu"

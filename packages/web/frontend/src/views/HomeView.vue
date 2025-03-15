@@ -1,8 +1,7 @@
 <template>
   <div class="font-sans text-gray-900 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 dark:text-white min-h-screen">
-    <!-- Navigation -->
-    <Navbar v-model:isDarkMode="isDarkMode" />
-
+    <!-- Navigation is now handled by AppLayout -->
+    
     <!-- Hero Section -->
     <section class="pt-32 pb-20 relative overflow-hidden bg-white dark:bg-black min-h-screen flex items-center">
       <!-- Background gradient and effects -->
@@ -417,7 +416,6 @@ import {
   ListTodoIcon, CalendarIcon, MonitorSmartphoneIcon as DevicesIcon, ZapIcon, CloudIcon,
   EyeOffIcon, ShieldCheckIcon
 } from 'lucide-vue-next'
-import Navbar from '@/components/layout/Navbar.vue'
 
 gsap.registerPlugin(ScrollTrigger, MotionPathPlugin)
 

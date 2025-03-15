@@ -19,6 +19,11 @@ export const authService = {
     return response.data;
   },
 
+  async getProfile(): Promise<{ user: AuthResponse['user'] }> {
+    const response = await axios.get(`${API_URL}/auth/profile`);
+    return response.data;
+  },
+
   setToken(token: string): void {
     localStorage.setItem('token', token);
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
