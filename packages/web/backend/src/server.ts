@@ -15,7 +15,7 @@ export const createServer = async (): Promise<Application> => {
     process.exit(1);
   }
   
-  // CORS middleware
+  // CORS middleware with more robust configuration
   app.use(cors({
     origin: [
       'http://localhost:4173',
@@ -24,11 +24,14 @@ export const createServer = async (): Promise<Application> => {
       'https://api.chronosync.constantsuchet.fr'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     credentials: true,
     maxAge: 86400 // 24 hours
   }));
+  
+  // Add preflight handling for OPTIONS requests
+  app.options('*', cors());
   
   // Basic middleware
   app.use(express.json());
