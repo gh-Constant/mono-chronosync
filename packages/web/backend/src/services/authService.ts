@@ -28,9 +28,9 @@ export const registerUser = async (userData: RegisterRequestBody) => {
 
   // Create new user
   const newUserResult = await query(
-    `INSERT INTO users (name, email, "hashedPassword", "verificationToken", "verificationTokenExpires") 
+    `INSERT INTO users (name, email, hashed_password, verification_token, verification_token_expires) 
      VALUES ($1, $2, $3, $4, $5) 
-     RETURNING id, name, email, image, "createdAt"`,
+     RETURNING id, name, email, image, created_at`,
     [userData.name, userData.email, hashedPassword, verificationToken, tokenExpiry]
   );
 
@@ -61,7 +61,7 @@ export const registerUser = async (userData: RegisterRequestBody) => {
 export const loginUser = async (credentials: LoginRequestBody) => {
   // Find user by email with explicit field selection
   const userResult = await query(
-    `SELECT id, name, email, "hashedPassword", image, "createdAt" 
+    `SELECT id, name, email, hashed_password, image, created_at 
      FROM users 
      WHERE email = $1 
      LIMIT 1`,
@@ -75,12 +75,12 @@ export const loginUser = async (credentials: LoginRequestBody) => {
   }
 
   // Verify password
-  if (!user.hashedPassword) {
+  if (!user.hashed_password) {
     throw new Error('This account cannot login with password');
   }
 
   // Ensure hashedPassword is a string
-  const storedHash = String(user.hashedPassword);
+  const storedHash = String(user.hashed_password);
 
   const isPasswordValid = verifyPassword(
     credentials.password,
@@ -101,7 +101,7 @@ export const loginUser = async (credentials: LoginRequestBody) => {
   const token = generateToken(payload);
 
   // Return user info without sensitive data
-  const { hashedPassword: _, ...userWithoutSensitiveData } = user;
+  const { hashed_password: _, ...userWithoutSensitiveData } = user;
 
   return {
     user: userWithoutSensitiveData,
@@ -116,7 +116,7 @@ export const loginUser = async (credentials: LoginRequestBody) => {
  */
 export const getUserById = async (userId: number) => {
   const userResult = await query(
-    `SELECT id, name, email, image, "emailVerified", "createdAt" 
+    `SELECT id, name, email, image, email_verified, created_at 
      FROM users 
      WHERE id = $1 
      LIMIT 1`,
@@ -158,7 +158,7 @@ export const requestPasswordReset = async (email: string) => {
   // Update user with reset token
   await query(
     `UPDATE users 
-     SET "verificationToken" = $1, "verificationTokenExpires" = $2 
+     SET verification_token = $1, verification_token_expires = $2 
      WHERE id = $3`,
     [verificationToken, tokenExpiry, user.id]
   );
@@ -177,7 +177,7 @@ export const requestPasswordReset = async (email: string) => {
 export const resetPassword = async (token: string, newPassword: string) => {
   // Find user by verification token
   const userResult = await query(
-    'SELECT * FROM users WHERE "verificationToken" = $1 LIMIT 1',
+    'SELECT * FROM users WHERE verification_token = $1 LIMIT 1',
     [token]
   );
 
@@ -188,7 +188,7 @@ export const resetPassword = async (token: string, newPassword: string) => {
   }
 
   // Check if token is expired
-  if (!user.verificationTokenExpires || new Date() > user.verificationTokenExpires) {
+  if (!user.verification_token_expires || new Date() > user.verification_token_expires) {
     throw new Error('Token has expired');
   }
 
@@ -198,7 +198,7 @@ export const resetPassword = async (token: string, newPassword: string) => {
   // Update user password and clear token
   await query(
     `UPDATE users 
-     SET "hashedPassword" = $1, "verificationToken" = NULL, "verificationTokenExpires" = NULL 
+     SET hashed_password = $1, verification_token = NULL, verification_token_expires = NULL 
      WHERE id = $2`,
     [hashedPassword, user.id]
   );
