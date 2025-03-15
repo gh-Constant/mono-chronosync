@@ -10,6 +10,10 @@ dotenv.config();
 
 // Configure Passport strategies
 export const configurePassport = () => {
+  // Log OAuth configuration for debugging
+  console.log('OAuth Configuration:');
+  console.log('Google callback URL:', `${process.env.API_URL}/auth/google/callback`);
+  
   // Google OAuth Strategy
   passport.use(
     new GoogleStrategy(
