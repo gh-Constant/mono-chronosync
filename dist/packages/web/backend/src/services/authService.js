@@ -1,0 +1,147 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.resetPassword = exports.requestPasswordReset = exports.getUserById = exports.loginUser = exports.registerUser = void 0;
+const database_1 = require("../config/database");
+const auth_1 = require("../utils/auth");
+/**
+ * Register a new user
+ * @param userData User registration data
+ * @returns User object and JWT token
+ */
+const registerUser = async (userData) => {
+    // Check if user already exists
+    const existingUser = await (0, database_1.query)('SELECT * FROM users WHERE email = $1 LIMIT 1', [userData.email]);
+    if (existingUser.rows.length > 0) {
+        throw new Error('Email already in use');
+    }
+    // Hash password
+    const hashedPassword = (0, auth_1.hashPassword)(userData.password);
+    // Generate verification token
+    const verificationToken = (0, auth_1.generateVerificationToken)();
+    const tokenExpiry = (0, auth_1.calculateTokenExpiry)(24); // 24 hours
+    // Create new user
+    const newUserResult = await (0, database_1.query)(`INSERT INTO users (name, email, "hashedPassword", "verificationToken", "verificationTokenExpires") 
+     VALUES ($1, $2, $3, $4, $5) 
+     RETURNING id, name, email, image, "createdAt"`, [userData.name, userData.email, hashedPassword, verificationToken, tokenExpiry]);
+    const newUser = newUserResult.rows[0];
+    // Generate JWT token
+    const payload = {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+    };
+    const token = (0, auth_1.generateToken)(payload);
+    // TODO: Send verification email (implement in a separate service)
+    return {
+        user: newUser,
+        token,
+    };
+};
+exports.registerUser = registerUser;
+/**
+ * Login a user
+ * @param credentials Login credentials
+ * @returns User object and JWT token
+ */
+const loginUser = async (credentials) => {
+    // Find user by email with explicit field selection
+    const userResult = await (0, database_1.query)(`SELECT id, name, email, "hashedPassword", image, "createdAt" 
+     FROM users 
+     WHERE email = $1 
+     LIMIT 1`, [credentials.email]);
+    const user = userResult.rows[0];
+    if (!user) {
+        throw new Error('Invalid email or password');
+    }
+    // Verify password
+    if (!user.hashedPassword) {
+        throw new Error('This account cannot login with password');
+    }
+    // Ensure hashedPassword is a string
+    const storedHash = String(user.hashedPassword);
+    const isPasswordValid = (0, auth_1.verifyPassword)(credentials.password, storedHash);
+    if (!isPasswordValid) {
+        throw new Error('Invalid email or password');
+    }
+    // Generate JWT token
+    const payload = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+    };
+    const token = (0, auth_1.generateToken)(payload);
+    // Return user info without sensitive data
+    const { hashedPassword: _, ...userWithoutSensitiveData } = user;
+    return {
+        user: userWithoutSensitiveData,
+        token,
+    };
+};
+exports.loginUser = loginUser;
+/**
+ * Get user by ID
+ * @param userId User ID
+ * @returns User object without sensitive data
+ */
+const getUserById = async (userId) => {
+    const userResult = await (0, database_1.query)(`SELECT id, name, email, image, "emailVerified", "createdAt" 
+     FROM users 
+     WHERE id = $1 
+     LIMIT 1`, [userId]);
+    const user = userResult.rows[0];
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+};
+exports.getUserById = getUserById;
+/**
+ * Request password reset
+ * @param email User email
+ * @returns Success message
+ */
+const requestPasswordReset = async (email) => {
+    // Find user by email
+    const userResult = await (0, database_1.query)('SELECT * FROM users WHERE email = $1 LIMIT 1', [email]);
+    const user = userResult.rows[0];
+    if (!user) {
+        // Don't reveal that email doesn't exist
+        return { message: 'If your email is registered, you will receive a password reset link' };
+    }
+    // Generate verification token
+    const verificationToken = (0, auth_1.generateVerificationToken)();
+    const tokenExpiry = (0, auth_1.calculateTokenExpiry)(1); // 1 hour
+    // Update user with reset token
+    await (0, database_1.query)(`UPDATE users 
+     SET "verificationToken" = $1, "verificationTokenExpires" = $2 
+     WHERE id = $3`, [verificationToken, tokenExpiry, user.id]);
+    // TODO: Send password reset email (implement in a separate service)
+    return { message: 'If your email is registered, you will receive a password reset link' };
+};
+exports.requestPasswordReset = requestPasswordReset;
+/**
+ * Reset password with token
+ * @param token Verification token
+ * @param newPassword New password
+ * @returns Success message
+ */
+const resetPassword = async (token, newPassword) => {
+    // Find user by verification token
+    const userResult = await (0, database_1.query)('SELECT * FROM users WHERE "verificationToken" = $1 LIMIT 1', [token]);
+    const user = userResult.rows[0];
+    if (!user) {
+        throw new Error('Invalid or expired token');
+    }
+    // Check if token is expired
+    if (!user.verificationTokenExpires || new Date() > user.verificationTokenExpires) {
+        throw new Error('Token has expired');
+    }
+    // Generate new salt and hash password
+    const hashedPassword = (0, auth_1.hashPassword)(newPassword);
+    // Update user password and clear token
+    await (0, database_1.query)(`UPDATE users 
+     SET "hashedPassword" = $1, "verificationToken" = NULL, "verificationTokenExpires" = NULL 
+     WHERE id = $2`, [hashedPassword, user.id]);
+    return { message: 'Password has been reset successfully' };
+};
+exports.resetPassword = resetPassword;

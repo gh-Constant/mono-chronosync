@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { hashPassword } from '../utils/auth';
+import { hashPassword, verifyToken } from '../utils/auth';
 import { registerUser, loginUser } from '../services/authService';
 import { RegisterRequestBody, LoginRequestBody } from '../interfaces/auth';
 

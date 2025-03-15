@@ -1,7 +1,6 @@
 import { Request } from 'express';
-import { User } from '../models/schema';
 import { IJwtPayload, IRegisterCredentials, ILoginCredentials } from '@chronosync/common';
-
+import { User } from '@chronosync/common';
 // Extend Express Request to include user property
 export interface AuthRequest extends Request {
   user?: IJwtPayload;
