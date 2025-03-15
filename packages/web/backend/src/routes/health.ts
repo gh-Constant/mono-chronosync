@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import pool from '../config/drizzle';
+import pool from '../config/database';
 
 const router = Router();
 
@@ -40,7 +40,6 @@ router.get('/database', async (req: Request, res: Response) => {
         counts: {
           applications: parseInt(result.rows[0].count)
         },
-        usingDrizzle: true,
         message: 'Successfully connected to database and queried applications table'
       });
     } finally {

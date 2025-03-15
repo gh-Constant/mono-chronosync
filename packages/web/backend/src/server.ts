@@ -1,17 +1,17 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import routes from './routes';
-import { initializeDrizzle } from './config/drizzle';
+import { initializeDatabase } from './config/database';
 
 export const createServer = async (): Promise<Application> => {
   const app = express();
   
-  // Initialize database with Drizzle
+  // Initialize database 
   try {
-    await initializeDrizzle();
-    console.log('Drizzle ORM initialized successfully');
+    await initializeDatabase();
+    console.log('PostgreSQL database initialized successfully');
   } catch (error) {
-    console.error('Failed to initialize Drizzle ORM:', error);
+    console.error('Failed to initialize PostgreSQL database:', error);
     process.exit(1);
   }
   

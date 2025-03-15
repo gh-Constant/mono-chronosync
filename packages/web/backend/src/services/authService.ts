@@ -1,6 +1,4 @@
-import { eq } from 'drizzle-orm';
-import { db } from '../config/drizzle';
-import { users } from '../models/schema';
+import { query } from '../config/database';
 import { hashPassword, verifyPassword, generateToken, generateVerificationToken, calculateTokenExpiry } from '../utils/auth';
 import { RegisterRequestBody, LoginRequestBody, IJwtPayload } from '../interfaces/auth';
 import { JwtPayload } from 'jsonwebtoken';
@@ -12,12 +10,12 @@ import { JwtPayload } from 'jsonwebtoken';
  */
 export const registerUser = async (userData: RegisterRequestBody) => {
   // Check if user already exists
-  const existingUser = await db.select()
-    .from(users)
-    .where(eq(users.email, userData.email))
-    .limit(1);
+  const existingUser = await query(
+    'SELECT * FROM users WHERE email = $1 LIMIT 1',
+    [userData.email]
+  );
 
-  if (existingUser.length > 0) {
+  if (existingUser.rows.length > 0) {
     throw new Error('Email already in use');
   }
 
@@ -29,21 +27,14 @@ export const registerUser = async (userData: RegisterRequestBody) => {
   const tokenExpiry = calculateTokenExpiry(24); // 24 hours
 
   // Create new user
-  const [newUser] = await db.insert(users)
-    .values({
-      name: userData.name,
-      email: userData.email,
-      hashedPassword: hashedPassword,
-      verificationToken: verificationToken,
-      verificationTokenExpires: tokenExpiry,
-    })
-    .returning({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      image: users.image,
-      createdAt: users.createdAt,
-    });
+  const newUserResult = await query(
+    `INSERT INTO users (name, email, "hashedPassword", "verificationToken", "verificationTokenExpires") 
+     VALUES ($1, $2, $3, $4, $5) 
+     RETURNING id, name, email, image, "createdAt"`,
+    [userData.name, userData.email, hashedPassword, verificationToken, tokenExpiry]
+  );
+
+  const newUser = newUserResult.rows[0];
 
   // Generate JWT token
   const payload: IJwtPayload = {
@@ -69,17 +60,15 @@ export const registerUser = async (userData: RegisterRequestBody) => {
  */
 export const loginUser = async (credentials: LoginRequestBody) => {
   // Find user by email with explicit field selection
-  const [user] = await db.select({
-    id: users.id,
-    name: users.name,
-    email: users.email,
-    hashedPassword: users.hashedPassword,
-    image: users.image,
-    createdAt: users.createdAt,
-  })
-  .from(users)
-  .where(eq(users.email, credentials.email))
-  .limit(1);
+  const userResult = await query(
+    `SELECT id, name, email, "hashedPassword", image, "createdAt" 
+     FROM users 
+     WHERE email = $1 
+     LIMIT 1`,
+    [credentials.email]
+  );
+
+  const user = userResult.rows[0];
 
   if (!user) {
     throw new Error('Invalid email or password');
@@ -126,17 +115,15 @@ export const loginUser = async (credentials: LoginRequestBody) => {
  * @returns User object without sensitive data
  */
 export const getUserById = async (userId: number) => {
-  const [user] = await db.select({
-    id: users.id,
-    name: users.name,
-    email: users.email,
-    image: users.image,
-    emailVerified: users.emailVerified,
-    createdAt: users.createdAt,
-  })
-  .from(users)
-  .where(eq(users.id, userId))
-  .limit(1);
+  const userResult = await query(
+    `SELECT id, name, email, image, "emailVerified", "createdAt" 
+     FROM users 
+     WHERE id = $1 
+     LIMIT 1`,
+    [userId]
+  );
+
+  const user = userResult.rows[0];
 
   if (!user) {
     throw new Error('User not found');
@@ -152,10 +139,12 @@ export const getUserById = async (userId: number) => {
  */
 export const requestPasswordReset = async (email: string) => {
   // Find user by email
-  const [user] = await db.select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  const userResult = await query(
+    'SELECT * FROM users WHERE email = $1 LIMIT 1',
+    [email]
+  );
+
+  const user = userResult.rows[0];
 
   if (!user) {
     // Don't reveal that email doesn't exist
@@ -167,12 +156,12 @@ export const requestPasswordReset = async (email: string) => {
   const tokenExpiry = calculateTokenExpiry(1); // 1 hour
 
   // Update user with reset token
-  await db.update(users)
-    .set({
-      verificationToken,
-      verificationTokenExpires: tokenExpiry,
-    })
-    .where(eq(users.id, user.id));
+  await query(
+    `UPDATE users 
+     SET "verificationToken" = $1, "verificationTokenExpires" = $2 
+     WHERE id = $3`,
+    [verificationToken, tokenExpiry, user.id]
+  );
 
   // TODO: Send password reset email (implement in a separate service)
 
@@ -187,10 +176,12 @@ export const requestPasswordReset = async (email: string) => {
  */
 export const resetPassword = async (token: string, newPassword: string) => {
   // Find user by verification token
-  const [user] = await db.select()
-    .from(users)
-    .where(eq(users.verificationToken, token))
-    .limit(1);
+  const userResult = await query(
+    'SELECT * FROM users WHERE "verificationToken" = $1 LIMIT 1',
+    [token]
+  );
+
+  const user = userResult.rows[0];
 
   if (!user) {
     throw new Error('Invalid or expired token');
@@ -205,13 +196,12 @@ export const resetPassword = async (token: string, newPassword: string) => {
   const hashedPassword = hashPassword(newPassword);
 
   // Update user password and clear token
-  await db.update(users)
-    .set({
-      hashedPassword,
-      verificationToken: undefined,
-      verificationTokenExpires: undefined,
-    })
-    .where(eq(users.id, user.id));
+  await query(
+    `UPDATE users 
+     SET "hashedPassword" = $1, "verificationToken" = NULL, "verificationTokenExpires" = NULL 
+     WHERE id = $2`,
+    [hashedPassword, user.id]
+  );
 
   return { message: 'Password has been reset successfully' };
 }; 

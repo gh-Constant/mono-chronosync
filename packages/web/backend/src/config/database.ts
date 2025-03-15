@@ -1,4 +1,3 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import * as fs from 'fs';
@@ -10,7 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Log database connection attempt
-console.log('=== Drizzle Database Connection Debug ===');
+console.log('=== PostgreSQL Database Connection Debug ===');
 console.log('Environment:', process.env.NODE_ENV);
 console.log('Host:', process.env.DB_HOST);
 console.log('Port:', process.env.DB_PORT);
@@ -36,14 +35,11 @@ const pool = isProduction
   ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: false })
   : new Pool(connectionConfig);
 
-// Create Drizzle instance
-export const db = drizzle(pool);
-
-// Initialize Drizzle function
-export const initializeDrizzle = async () => {
+// Initialize database function
+export const initializeDatabase = async () => {
   const client = await pool.connect();
   try {
-    console.log('Testing Drizzle connection...');
+    console.log('Testing database connection...');
     
     // Simple query to verify connection
     await client.query('SELECT NOW()');
@@ -77,9 +73,9 @@ export const initializeDrizzle = async () => {
       console.log('Database schema already exists');
     }
     
-    console.log('Drizzle ORM setup complete!');
+    console.log('PostgreSQL setup complete!');
   } catch (error) {
-    console.error('Error initializing Drizzle:', error);
+    console.error('Error initializing database:', error);
     if (error instanceof Error) {
       console.error('Error details:', error.message);
     }
@@ -89,10 +85,24 @@ export const initializeDrizzle = async () => {
   }
 };
 
+// Helper function to execute queries
+export const query = async (text: string, params?: any[]) => {
+  const start = Date.now();
+  try {
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    console.log('Executed query', { text, duration, rows: res.rowCount });
+    return res;
+  } catch (error) {
+    console.error('Error executing query:', error);
+    throw error;
+  }
+};
+
 // Add error handler for connection issues
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
 });
 
-// Export pool for raw queries if needed
+// Export pool for direct access if needed
 export default pool; 
