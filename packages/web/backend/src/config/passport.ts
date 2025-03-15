@@ -1,7 +1,6 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
-import { Strategy as AppleStrategy } from 'passport-apple';
 import { query } from './database';
 import { generateToken } from '../utils/auth';
 import dotenv from 'dotenv';
@@ -164,103 +163,6 @@ export const configurePassport = () => {
                 (user_id, provider, provider_account_id, access_token, refresh_token) 
                 VALUES ($1, $2, $3, $4, $5)`,
                 [userId, 'github', profile.id, accessToken, refreshToken]
-              );
-            }
-          }
-
-          // Get user data
-          const userResult = await query(
-            'SELECT id, name, email, image, email_verified, created_at FROM users WHERE id = $1',
-            [userId]
-          );
-          
-          const user = userResult.rows[0];
-          
-          // Generate JWT token
-          const token = generateToken({
-            id: user.id,
-            email: user.email,
-            name: user.name
-          });
-
-          return done(null, { user, token });
-        } catch (error) {
-          return done(error as Error);
-        }
-      }
-    )
-  );
-
-  // Apple OAuth Strategy
-  passport.use(
-    new AppleStrategy(
-      {
-        clientID: process.env.APPLE_CLIENT_ID || '',
-        teamID: process.env.APPLE_TEAM_ID || '',
-        keyID: process.env.APPLE_KEY_ID || '',
-        privateKeyLocation: process.env.APPLE_PRIVATE_KEY_LOCATION || '',
-        callbackURL: `${process.env.API_URL}/auth/apple/callback`,
-        scope: ['name', 'email'],
-        passReqToCallback: false
-      },
-      async (accessToken: string, refreshToken: string, idToken: string, profile: any, done: any) => {
-        try {
-          // Apple profile structure is different from Google/GitHub
-          const appleId = profile.id;
-          const email = profile.email;
-          
-          // Check if user exists with this provider account
-          const existingAccountResult = await query(
-            'SELECT * FROM oauth_accounts WHERE provider = $1 AND provider_account_id = $2 LIMIT 1',
-            ['apple', appleId]
-          );
-
-          let userId;
-
-          if (existingAccountResult.rows.length > 0) {
-            // User exists, get user ID
-            userId = existingAccountResult.rows[0].user_id;
-          } else {
-            // Check if user exists with this email
-            const existingUserResult = await query(
-              'SELECT * FROM users WHERE email = $1 LIMIT 1',
-              [email]
-            );
-
-            if (existingUserResult.rows.length > 0) {
-              // User exists with this email, link the account
-              userId = existingUserResult.rows[0].id;
-              
-              // Create OAuth account link
-              await query(
-                `INSERT INTO oauth_accounts 
-                (user_id, provider, provider_account_id, access_token, refresh_token) 
-                VALUES ($1, $2, $3, $4, $5)`,
-                [userId, 'apple', appleId, accessToken, refreshToken]
-              );
-            } else {
-              // Create new user
-              // Apple may not provide name on every login, only the first time
-              const name = profile.name?.firstName && profile.name?.lastName 
-                ? `${profile.name.firstName} ${profile.name.lastName}` 
-                : 'Apple User';
-              
-              const newUserResult = await query(
-                `INSERT INTO users 
-                (name, email, email_verified) 
-                VALUES ($1, $2, $3) 
-                RETURNING id`,
-                [name, email, new Date()]
-              );
-              
-              userId = newUserResult.rows[0].id;
-              
-              // Create OAuth account link
-              await query(
-                `INSERT INTO oauth_accounts 
-                (user_id, provider, provider_account_id, access_token, refresh_token) 
-                VALUES ($1, $2, $3, $4, $5)`,
-                [userId, 'apple', appleId, accessToken, refreshToken]
               );
             }
           }

@@ -111,8 +111,9 @@
                     <google-icon class="w-5 h-5" />
                   </button>
                   <button
-                    @click="handleOAuthLogin('apple')"
-                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
+                    disabled
+                    title="Apple Sign In coming soon"
+                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed items-center"
                   >
                     <apple-icon class="w-5 h-5" />
                   </button>

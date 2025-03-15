@@ -58,12 +58,6 @@ router.get(
   authController.oauthCallback
 );
 
-// Apple OAuth
-router.get('/apple', passport.authenticate('apple', { scope: ['name', 'email'] }));
-router.get(
-  '/apple/callback',
-  passport.authenticate('apple', { session: false, failureRedirect: '/login?error=apple-auth-failed' }),
-  authController.oauthCallback
-);
+// Apple OAuth routes removed
 
 export default router; 
