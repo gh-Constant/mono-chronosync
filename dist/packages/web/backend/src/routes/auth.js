@@ -59,7 +59,5 @@ router.get('/google/callback', passport_1.default.authenticate('google', { sessi
 // GitHub OAuth
 router.get('/github', passport_1.default.authenticate('github', { scope: ['user:email'] }));
 router.get('/github/callback', passport_1.default.authenticate('github', { session: false, failureRedirect: '/login?error=github-auth-failed' }), authController.oauthCallback);
-// Apple OAuth
-router.get('/apple', passport_1.default.authenticate('apple', { scope: ['name', 'email'] }));
-router.get('/apple/callback', passport_1.default.authenticate('apple', { session: false, failureRedirect: '/login?error=apple-auth-failed' }), authController.oauthCallback);
+// Apple OAuth routes removed
 exports.default = router;

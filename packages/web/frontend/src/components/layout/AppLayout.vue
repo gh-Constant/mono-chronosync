@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from './Navbar.vue'
+import CookieConsent from '../CookieConsent.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
@@ -39,5 +40,8 @@ watch(() => route.path, async () => {
     <main :class="{ 'pt-16': authStore.isAuthenticated }">
       <slot></slot>
     </main>
+
+    <!-- Cookie Consent Banner -->
+    <CookieConsent />
   </div>
 </template> 

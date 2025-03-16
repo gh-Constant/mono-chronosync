@@ -27,6 +27,12 @@ const router = createRouter({
       meta: { requiresAuth: false } // Public route
     },
     {
+      path: '/privacy-policy',
+      name: 'privacy-policy',
+      component: () => import('../views/PrivacyPolicyView.vue'),
+      meta: { requiresAuth: false } // Public route
+    },
+    {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('../views/DashboardView.vue'),

@@ -1,9 +1,11 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import passport from 'passport';
+import cookieParser from 'cookie-parser';
 import routes from './routes';
 import { initializeDatabase } from './config/database';
 import { configurePassport } from './config/passport';
+import { rgpdMiddleware } from './middlewares/rgpdMiddleware';
 
 export const createServer = async (): Promise<Application> => {
   const app = express();
@@ -45,6 +47,10 @@ export const createServer = async (): Promise<Application> => {
   
   // Basic middleware
   app.use(express.json());
+  app.use(cookieParser()); // Add cookie parser middleware
+  
+  // Apply RGPD middleware
+  app.use(rgpdMiddleware);
 
   // Initialize and configure Passport
   app.use(passport.initialize());
