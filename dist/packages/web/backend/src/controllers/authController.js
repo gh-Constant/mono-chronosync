@@ -136,8 +136,14 @@ const oauthCallback = (req, res) => {
         if (!authData || !authData.token) {
             return res.redirect('/login?error=authentication-failed');
         }
-        // Redirect to frontend with token
-        // In production, you might want to use a more secure method
+        // Check if redirect_uri was provided in the query params
+        // This would be passed from the initial OAuth request
+        const redirectUri = req.query.redirect_uri;
+        // If there's a valid desktop app redirect URI, use it
+        if (redirectUri && isValidRedirectUri(redirectUri)) {
+            return res.redirect(`${redirectUri}?token=${authData.token}`);
+        }
+        // Otherwise, redirect to frontend as usual
         return res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?token=${authData.token}`);
     }
     catch (error) {
@@ -146,3 +152,19 @@ const oauthCallback = (req, res) => {
     }
 };
 exports.oauthCallback = oauthCallback;
+/**
+ * Validates a redirect URI to prevent open redirect vulnerabilities
+ * Only allows specific URI schemes for desktop app integration
+ */
+const isValidRedirectUri = (uri) => {
+    try {
+        // Define allowed URI schemes for desktop apps
+        const validSchemes = ['myapp', 'chronosync'];
+        // Basic URI validation
+        const url = new URL(uri);
+        return validSchemes.includes(url.protocol.replace(':', ''));
+    }
+    catch (err) {
+        return false;
+    }
+};
