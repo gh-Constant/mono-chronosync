@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AuthView from '../views/AuthView.vue'
 import OAuthCallbackView from '../views/OAuthCallbackView.vue'
-import { useAuthStore } from '../stores/auth'
+
 import { authService } from '../services/authService'
 
 const router = createRouter({

@@ -373,7 +373,7 @@ const handleLogin = async () => {
   )
   
   if (success) {
-    router.push('/')
+    router.push('/oauth-callback')
   }
 }
 
@@ -389,7 +389,7 @@ const handleSignup = async () => {
   )
   
   if (success) {
-    router.push('/')
+    router.push('/oauth-callback')
   }
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { SunIcon, MoonIcon, UserIcon, LayoutDashboardIcon } from 'lucide-vue-next'
+import { SunIcon, MoonIcon, UserIcon } from 'lucide-vue-next'
 import { useThemeStore } from '@/stores/theme'
 import { useAuthStore } from '@/stores/auth'
 
