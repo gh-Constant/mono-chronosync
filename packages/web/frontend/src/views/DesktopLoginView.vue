@@ -303,8 +303,15 @@ const handleLogin = async () => {
     const token = authService.getToken()
     
     if (token) {
-      // Redirect to the desktop app with the token
-      window.location.href = `${redirectUri.value}?token=${token}`
+      // Log the redirect attempt
+      console.log('Redirecting to desktop app:', {
+        redirectUri: redirectUri.value,
+        hasToken: !!token,
+        tokenLength: token.length
+      })
+      
+      // Use window.location.replace instead of window.location.href for a cleaner redirect
+      window.location.replace(`${redirectUri.value}?token=${encodeURIComponent(token)}`)
     } else {
       error.value = 'Failed to generate token'
     }
