@@ -11,11 +11,13 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/auth/login`, credentials);
+    this.setToken(response.data.token);
     return response.data;
   },
 
   async signup(credentials: RegisterCredentials): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/auth/register`, credentials);
+    this.setToken(response.data.token);
     return response.data;
   },
 
