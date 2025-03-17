@@ -232,7 +232,6 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { authService } from '@/services/authService'
-import GoogleIcon from '@/assets/google.svg'
 
 // Router and Route
 const route = useRoute()
