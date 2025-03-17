@@ -10,37 +10,35 @@
         <!-- Content -->
         <div class="relative z-10 flex flex-col items-center justify-center w-full p-12 text-white">
           <div class="max-w-md text-center">
-            <div class="mb-8">
-              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm mb-6">
-                <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center">
-                  <div class="w-4 h-4 bg-purple-600 rounded-full"></div>
-                </div>
+            <div class="mb-12">
+              <div class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-sm mb-8">
+                <desktop-icon class="w-12 h-12 text-white" />
               </div>
-              <h2 class="text-3xl font-extrabold mb-2">Chronosync</h2>
-              <p class="text-xl font-light text-white/90">Master your digital time</p>
+              <h2 class="text-3xl font-extrabold mb-2">Chronosync Desktop</h2>
+              <p class="text-xl font-light text-white/90">Connect your desktop application</p>
             </div>
             
             <div class="space-y-8">
               <div class="p-6 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div class="flex items-start mb-4">
+                <div class="flex items-start">
                   <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
                     <clock-icon class="w-6 h-6" />
                   </div>
                   <div class="ml-4 text-left">
-                    <h3 class="text-lg font-semibold mb-1">Smart Tracking</h3>
-                    <p class="text-white/80">Our AI helps you optimize your time across all devices</p>
+                    <h3 class="text-lg font-semibold mb-1">Seamless Integration</h3>
+                    <p class="text-white/80">Track your time automatically across all your devices</p>
                   </div>
                 </div>
               </div>
               
               <div class="p-6 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div class="flex items-start mb-4">
+                <div class="flex items-start">
                   <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
                     <monitor-icon class="w-6 h-6" />
                   </div>
                   <div class="ml-4 text-left">
-                    <h3 class="text-lg font-semibold mb-1">Desktop Integration</h3>
-                    <p class="text-white/80">Sign in here to connect your desktop application</p>
+                    <h3 class="text-lg font-semibold mb-1">Desktop Features</h3>
+                    <p class="text-white/80">Access advanced features like automatic tracking and app monitoring</p>
                   </div>
                 </div>
               </div>
@@ -57,28 +55,26 @@
             <!-- Card Header with Logo -->
             <div class="p-8 text-center">
               <div class="inline-flex items-center gap-2 mb-8 lg:hidden">
-                <div class="relative w-8 h-8">
-                  <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
-                  <div class="absolute inset-1 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
-                    <div class="w-4 h-4 bg-purple-600 rounded-full"></div>
-                  </div>
+                <div class="relative w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                  <desktop-icon class="w-6 h-6 text-white" />
                 </div>
-                <span class="text-xl font-bold tracking-tight">Chronosync</span>
+                <span class="text-xl font-bold tracking-tight">Chronosync Desktop</span>
               </div>
               
-              <h2 class="text-2xl md:text-3xl font-extrabold mb-4 tracking-tight">
-                Desktop App Login
-              </h2>
-              <p class="text-gray-600 dark:text-gray-400 mb-6 font-light">
-                Sign in to connect your desktop application
-              </p>
-              
-              <!-- Desktop app info -->
-              <div v-if="redirectUri" class="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-left">
-                <p class="text-sm text-blue-800 dark:text-blue-200">
-                  <monitor-icon class="inline-block w-4 h-4 mr-2" />
-                  Connecting with desktop application
-                </p>
+              <!-- Desktop Connection Status -->
+              <div class="mb-8 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 rounded-xl">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center">
+                    <monitor-icon class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div class="ml-4 flex-1 text-left">
+                    <h3 class="text-sm font-medium text-purple-900 dark:text-purple-100">Desktop Connection</h3>
+                    <p class="mt-1 text-sm text-purple-700 dark:text-purple-300">
+                      Sign in to link your desktop application with your account
+                    </p>
+                  </div>
+                  <arrow-right-icon class="w-5 h-5 text-purple-500 dark:text-purple-400" />
+                </div>
               </div>
             </div>
             
@@ -89,20 +85,20 @@
                 <div class="grid grid-cols-3 gap-3">
                   <button
                     @click="handleOAuthLogin('google')"
-                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
+                    class="flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    <google-icon class="w-5 h-5" />
+                    <google-icon />
                   </button>
                   <button
                     disabled
                     title="Apple Sign In coming soon"
-                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed items-center"
+                    class="flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed"
                   >
                     <apple-icon class="w-5 h-5" />
                   </button>
                   <button
                     @click="handleOAuthLogin('github')"
-                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
+                    class="flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <github-icon class="w-5 h-5" />
                   </button>
@@ -230,15 +226,15 @@
 import { ref, onMounted } from 'vue'
 import { 
   GithubIcon, ClockIcon, LockIcon, MailIcon, 
-  AppleIcon, MonitorIcon 
+  AppleIcon, MonitorIcon, ComputerIcon as DesktopIcon, ArrowRightIcon 
 } from 'lucide-vue-next'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { authService } from '@/services/authService'
+import GoogleIcon from '@/assets/google.svg'
 
 // Router and Route
-const router = useRouter()
 const route = useRoute()
 
 // Auth store
@@ -329,6 +325,9 @@ const handleOAuthLogin = (provider: 'google' | 'github' | 'apple') => {
   // Include the redirect_uri parameter in the OAuth request
   window.location.href = `${apiUrl}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectUri.value)}`
 }
+
+
+
 </script>
 
 <style scoped>
