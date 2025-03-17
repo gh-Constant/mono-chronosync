@@ -23,19 +23,28 @@ const createServer = async () => {
     }
     // CORS middleware with more robust configuration
     app.use((0, cors_1.default)({
-        origin: [
-            'http://localhost:4173',
-            'http://localhost:5173',
-            'https://chronosync.constantsuchet.fr',
-            'https://api.chronosync.constantsuchet.fr'
-        ],
+        origin: function (origin, callback) {
+            const allowedOrigins = [
+                'http://localhost:4173',
+                'http://localhost:5173',
+                'https://chronosync.constantsuchet.fr'
+            ];
+            // Allow requests with no origin (like mobile apps, curl requests)
+            if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+                callback(null, true);
+            }
+            else {
+                console.warn(`Origin ${origin} not allowed by CORS`);
+                callback(null, false);
+            }
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
         exposedHeaders: ['Content-Range', 'X-Content-Range'],
         credentials: true,
         maxAge: 86400 // 24 hours
     }));
-    // Add preflight handling for OPTIONS requests
+    // Ensure OPTIONS requests are handled properly
     app.options('*', (0, cors_1.default)());
     // Basic middleware
     app.use(express_1.default.json());

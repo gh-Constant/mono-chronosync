@@ -54,12 +54,50 @@ router.post('/password-reset/request', (0, authValidators_1.validate)(authValida
 router.post('/password-reset/confirm', (0, authValidators_1.validate)(authValidators_1.passwordResetConfirmSchema), authController.confirmPasswordReset);
 // OAuth routes
 // Google OAuth
-router.get('/google', passport_1.default.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport_1.default.authenticate('google', { session: false, failureRedirect: '/login?error=google-auth-failed' }), authController.oauthCallback);
+router.get('/google', (req, res, next) => {
+    // Store redirect_uri in query params for the callback
+    const redirectUri = req.query.redirect_uri;
+    const authOptions = {
+        scope: ['profile', 'email'],
+        state: redirectUri ? Buffer.from(redirectUri).toString('base64') : undefined
+    };
+    passport_1.default.authenticate('google', authOptions)(req, res, next);
+});
+router.get('/google/callback', (req, res, next) => {
+    // Restore redirect_uri from state if present
+    if (req.query.state) {
+        try {
+            const redirectUri = Buffer.from(req.query.state, 'base64').toString();
+            req.query.redirect_uri = redirectUri;
+        }
+        catch (err) {
+            console.error('Failed to decode state parameter:', err);
+        }
+    }
+    passport_1.default.authenticate('google', { session: false, failureRedirect: '/login?error=google-auth-failed' })(req, res, next);
+}, authController.oauthCallback);
 // GitHub OAuth
-router.get('/github', passport_1.default.authenticate('github', { scope: ['user:email'] }));
-router.get('/github/callback', passport_1.default.authenticate('github', { session: false, failureRedirect: '/login?error=github-auth-failed' }), authController.oauthCallback);
-// Apple OAuth
-router.get('/apple', passport_1.default.authenticate('apple', { scope: ['name', 'email'] }));
-router.get('/apple/callback', passport_1.default.authenticate('apple', { session: false, failureRedirect: '/login?error=apple-auth-failed' }), authController.oauthCallback);
+router.get('/github', (req, res, next) => {
+    // Store redirect_uri in query params for the callback
+    const redirectUri = req.query.redirect_uri;
+    const authOptions = {
+        scope: ['user:email'],
+        state: redirectUri ? Buffer.from(redirectUri).toString('base64') : undefined
+    };
+    passport_1.default.authenticate('github', authOptions)(req, res, next);
+});
+router.get('/github/callback', (req, res, next) => {
+    // Restore redirect_uri from state if present
+    if (req.query.state) {
+        try {
+            const redirectUri = Buffer.from(req.query.state, 'base64').toString();
+            req.query.redirect_uri = redirectUri;
+        }
+        catch (err) {
+            console.error('Failed to decode state parameter:', err);
+        }
+    }
+    passport_1.default.authenticate('github', { session: false, failureRedirect: '/login?error=github-auth-failed' })(req, res, next);
+}, authController.oauthCallback);
+// Apple OAuth routes removed
 exports.default = router;

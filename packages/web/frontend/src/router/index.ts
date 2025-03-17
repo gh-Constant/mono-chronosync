@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AuthView from '../views/AuthView.vue'
 import OAuthCallbackView from '../views/OAuthCallbackView.vue'
+import DesktopLoginView from '../views/DesktopLoginView.vue'
 
 import { authService } from '../services/authService'
 
@@ -24,6 +25,12 @@ const router = createRouter({
       path: '/oauth-callback',
       name: 'oauth-callback',
       component: OAuthCallbackView,
+      meta: { requiresAuth: false } // Public route
+    },
+    {
+      path: '/desktop-login',
+      name: 'desktop-login',
+      component: DesktopLoginView,
       meta: { requiresAuth: false } // Public route
     },
     {
