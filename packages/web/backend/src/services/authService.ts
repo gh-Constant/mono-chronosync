@@ -58,7 +58,9 @@ export const registerUser = async (userData: RegisterRequestBody) => {
  * @param credentials Login credentials
  * @returns User object and JWT token
  */
-export const loginUser = async (credentials: LoginRequestBody) => {
+export const loginUser = async (credentials: { email: string; password: string }) => {
+  console.log('Attempting login for email:', credentials.email);
+
   // Find user by email with explicit field selection
   const userResult = await query(
     `SELECT id, name, email, hashed_password, image, created_at 
@@ -68,41 +70,53 @@ export const loginUser = async (credentials: LoginRequestBody) => {
     [credentials.email]
   );
 
-  const user = userResult.rows[0];
+  console.log('Database query result:', {
+    hasUser: !!userResult.rows[0],
+    rowCount: userResult.rowCount
+  });
 
+  const user = userResult.rows[0];
   if (!user) {
+    console.log('Login failed: User not found');
     throw new Error('Invalid email or password');
   }
 
   // Verify password
   if (!user.hashed_password) {
+    console.log('Login failed: User has no password (OAuth account)');
     throw new Error('This account cannot login with password');
   }
 
   // Ensure hashedPassword is a string
   const storedHash = String(user.hashed_password);
+  const isPasswordValid = verifyPassword(credentials.password, storedHash);
 
-  const isPasswordValid = verifyPassword(
-    credentials.password,
-    storedHash
-  );
+  console.log('Password verification result:', {
+    isValid: isPasswordValid,
+    userId: user.id
+  });
 
   if (!isPasswordValid) {
+    console.log('Login failed: Invalid password');
     throw new Error('Invalid email or password');
   }
 
   // Generate JWT token
-  const payload: IJwtPayload = {
+  const payload = {
     id: user.id,
     email: user.email,
     name: user.name,
   };
-  
   const token = generateToken(payload);
+
+  console.log('Login successful:', {
+    userId: user.id,
+    tokenGenerated: !!token,
+    tokenLength: token.length
+  });
 
   // Return user info without sensitive data
   const { hashed_password: _, ...userWithoutSensitiveData } = user;
-
   return {
     user: userWithoutSensitiveData,
     token,
