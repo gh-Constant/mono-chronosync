@@ -17,9 +17,12 @@ const authStore = useAuthStore()
 
 // Navigation items for authenticated users
 const navItems = computed(() => {
-  const items: NavItem[] = [
-    { name: 'Home', path: '/' }
-  ]
+  const items: NavItem[] = []
+  
+  // Add home route only for non-authenticated users
+  if (!authStore.isAuthenticated) {
+    items.push({ name: 'Home', path: '/' })
+  }
   
   // Add authenticated-only routes
   if (authStore.isAuthenticated) {
