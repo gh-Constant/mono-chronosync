@@ -10,6 +10,16 @@
         "@modelcontextprotocol/server-postgres",
         "postgresql://localhost/chronosync"
       ]
+    },
+    "coolify": {
+      "command": "npx",
+      "args": [
+        "-y", "@masonator/coolify-mcp"
+      ],
+      "env": {
+        "COOLIFY_ACCESS_TOKEN": "2|r9hjS1LMQfTvPtwUkyx2OmESnK4ghgPDdZTKsh3T3358973c",
+        "COOLIFY_BASE_URL": "https://coolify.chronosync.app"
+      }
     }
   }
 }
