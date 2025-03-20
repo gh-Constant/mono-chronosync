@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRoute } from 'vue-router'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 
 const authStore = useAuthStore()
+const route = useRoute()
+
+// Only show navbar on home and auth pages
+const showNavbar = computed(() => {
+  return route.path === '/' || route.path === '/auth'
+})
 </script>
 
 <template>
-  <nav class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+  <nav v-if="showNavbar" class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <!-- Logo and brand -->
@@ -25,15 +33,15 @@ const authStore = useAuthStore()
         <div class="flex items-center space-x-4">
           <ThemeToggle />
           
-          <template v-if="!authStore.isAuthenticated">
+          <template v-if="!authStore.isAuthenticated && route.path === '/'">
             <router-link
-              to="/login"
+              to="/auth?tab=login"
               class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
             >
               Log in
             </router-link>
             <router-link
-              to="/register"
+              to="/auth?tab=signup"
               class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
             >
               Sign up
@@ -41,7 +49,7 @@ const authStore = useAuthStore()
           </template>
           
           <button
-            v-else
+            v-else-if="authStore.isAuthenticated"
             @click="authStore.logout"
             class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
           >

@@ -1,7 +1,9 @@
 <template>
   <div class="font-sans text-gray-900 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 dark:text-white min-h-screen flex flex-col">
-    <!-- Navigation is now handled by AppLayout -->
-
+    <!-- Navigation with proper z-index -->
+    <div class="relative z-50">
+      <Navbar />
+    </div>
     <!-- Split Screen Auth Container -->
     <div class="flex flex-1">
       <!-- Decorative Side -->
@@ -323,16 +325,13 @@ import {
   ShieldCheckIcon, AppleIcon 
 } from 'lucide-vue-next'
 import { useRouter, useRoute } from 'vue-router'
-import { useThemeStore } from '@/stores/theme'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
+import Navbar from '@/components/layout/Navbar.vue'
 
 // Router and Route
 const router = useRouter()
 const route = useRoute()
-
-// Theme store
-const themeStore = useThemeStore()
 
 // Auth store
 const authStore = useAuthStore()
