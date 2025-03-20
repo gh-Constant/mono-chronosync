@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { AuthResponse } from '@/types/auth';
 import { authService } from '@/services/authService';
+import router from '../router';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthResponse['user'] | null>(null);
@@ -87,6 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null;
     isAuthenticated.value = false;
     authService.removeToken();
+    router.push({ name: 'home' });
   }
 
   async function checkAuth() {
