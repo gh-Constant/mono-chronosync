@@ -50,21 +50,21 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach((to, from, next) => {
-  // Check if the route requires authentication
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    // Initialize auth service if needed
-    const token = authService.getToken()
-    
+  // Check if the user is already authenticated on initial load
+  const token = authService.getToken();
+  if (token && to.name === 'home') {
+    next({ name: 'dashboard' });
+  } else if (to.matched.some(record => record.meta.requiresAuth)) {
     // If no token, redirect to auth page
     if (!token) {
-      next({ name: 'auth', query: { redirect: to.fullPath } })
+      next({ name: 'auth', query: { redirect: to.fullPath } });
     } else {
       // Token exists, proceed
-      next()
+      next();
     }
   } else {
     // Route doesn't require auth, proceed
-    next()
+    next();
   }
 })
 
