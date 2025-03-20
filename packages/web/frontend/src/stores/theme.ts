@@ -1,41 +1,56 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
-  const isDarkMode = ref(false)
+  const theme = ref(localStorage.getItem('theme') || 'system')
+  const systemTheme = ref(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 
-  function toggleDarkMode() {
-    isDarkMode.value = !isDarkMode.value
-    updateDocumentClass()
-  }
+  // Watch for system theme changes
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  mediaQuery.addEventListener('change', (e) => {
+    systemTheme.value = e.matches ? 'dark' : 'light'
+    if (theme.value === 'system') {
+      applyTheme(systemTheme.value)
+    }
+  })
 
-  function setDarkMode(value: boolean) {
-    isDarkMode.value = value
-    updateDocumentClass()
-  }
+  // Watch for theme changes
+  watch(theme, (newTheme) => {
+    localStorage.setItem('theme', newTheme)
+    if (newTheme === 'system') {
+      applyTheme(systemTheme.value)
+    } else {
+      applyTheme(newTheme)
+    }
+  })
 
-  function updateDocumentClass() {
-    if (isDarkMode.value) {
+  // Apply theme to document
+  function applyTheme(mode: string) {
+    if (mode === 'dark') {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
   }
 
-  // Initialize dark mode based on system preference
-  if (typeof window !== 'undefined') {
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setDarkMode(systemPrefersDark)
+  // Initialize theme
+  function initializeTheme() {
+    if (theme.value === 'system') {
+      applyTheme(systemTheme.value)
+    } else {
+      applyTheme(theme.value)
+    }
+  }
 
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      setDarkMode(e.matches)
-    })
+  // Toggle theme
+  function setTheme(newTheme: 'light' | 'dark' | 'system') {
+    theme.value = newTheme
   }
 
   return {
-    isDarkMode,
-    toggleDarkMode,
-    setDarkMode
+    theme,
+    systemTheme,
+    setTheme,
+    initializeTheme
   }
 }) 
