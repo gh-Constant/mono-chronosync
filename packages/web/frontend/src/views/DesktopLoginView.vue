@@ -87,7 +87,6 @@
                     @click="handleOAuthLogin('google')"
                     class="flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    <GoogleIcon />
                   </button>
                   <button
                     disabled
@@ -232,7 +231,6 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { authService } from '@/services/authService'
-import GoogleIcon from '@/assets/google.svg'
 
 // Router and Route
 const route = useRoute()
