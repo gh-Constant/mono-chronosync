@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 import Navbar from './Navbar.vue'
 import CookieConsent from '../CookieConsent.vue'
 import { useAuthStore } from '@/stores/auth'
-import Navbar from './Navbar.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -47,7 +46,6 @@ watch(() => route.path, async () => {
   </div>
 </template> 
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <Navbar />
     <main>
       <slot />
     </main>
