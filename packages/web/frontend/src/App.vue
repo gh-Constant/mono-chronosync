@@ -2,12 +2,12 @@
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import AppLayout from './components/layout/AppLayout.vue'
-import { useAuthStore } from './stores/auth'
-import { authService } from './services/authService'
+import { useThemeStore } from './stores/theme'
 
-// Initialize auth service
+const themeStore = useThemeStore()
+
 onMounted(() => {
-  authService.initializeAuth()
+  themeStore.initializeTheme()
 })
 </script>
 
@@ -17,18 +17,24 @@ onMounted(() => {
   </AppLayout>
 </template>
 
-<style scoped>
-nav {
-  display: flex;
-  gap: 1rem;
+<style>
+:root {
+  color-scheme: light dark;
 }
 
-nav a {
-  text-decoration: none;
-  color: var(--color-text);
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
 }
 
-nav a.router-link-exact-active {
-  font-weight: bold;
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 </style>

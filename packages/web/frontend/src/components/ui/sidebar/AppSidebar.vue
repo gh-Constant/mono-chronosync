@@ -17,6 +17,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth'
 import { useRoute } from 'vue-router'
+import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -39,6 +40,25 @@ const menuItems = [
     to: '/settings'
   }
 ]
+
+const userName = computed(() => authStore.user?.name || 'User')
+const userInitials = computed(() => {
+  const name = authStore.user?.name || 'User'
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+})
+
+function isCurrentRoute(path: string) {
+  return route.path === path
+}
+
+function logout() {
+  authStore.logout()
+}
 </script>
 
 <template>
@@ -77,11 +97,11 @@ const menuItems = [
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton>
                 <User2 class="h-4 w-4" />
-                <span v-if="state === 'expanded'">{{ authStore.user?.email }}</span>
+                <span v-if="state === 'expanded'">{{ userName }}</span>
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" class="w-48">
-              <DropdownMenuItem @click="authStore.logout">
+              <DropdownMenuItem @click="logout">
                 <LogOut class="mr-2 h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
@@ -91,6 +111,7 @@ const menuItems = [
       </SidebarMenu>
     </SidebarFooter>
   </Sidebar>
+  <ThemeToggle />
 </template>
 
 <style scoped>
