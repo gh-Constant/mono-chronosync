@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import { Home, Calendar, Settings, User2, LogOut, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useSidebar } from '@/components/ui/sidebar'
 import { SidebarTrigger } from '@/components/ui/sidebar'

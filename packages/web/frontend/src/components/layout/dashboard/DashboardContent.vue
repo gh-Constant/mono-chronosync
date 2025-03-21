@@ -11,6 +11,14 @@ const contentPadding = computed(() => {
   if (isMobile.value) return '0' // No padding on mobile at all
   return isExpanded.value ? 'var(--sidebar-width)' : 'var(--sidebar-width-icon)'
 })
+
+// Compute top padding for mobile when sidebar is collapsed
+const topPadding = computed(() => {
+  if (isMobile.value && sidebar.state.value === 'collapsed') {
+    return '3rem' // Add extra top padding when the floating button is visible
+  }
+  return '0'
+})
 </script>
 
 <template>
@@ -18,12 +26,13 @@ const contentPadding = computed(() => {
     :style="{
       '--sidebar-width': SIDEBAR_WIDTH,
       '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-      paddingLeft: contentPadding
+      paddingLeft: contentPadding,
+      paddingTop: topPadding
     }"
     class="min-h-screen transition-all duration-300"
   >
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-      <div class="mx-auto max-w-6xl">
+    <div class="mx-auto w-full max-w-4xl px-6 sm:px-8 py-8 flex flex-col items-center">
+      <div class="w-full">
         <slot />
       </div>
     </div>
