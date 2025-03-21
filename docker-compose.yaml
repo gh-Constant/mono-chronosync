@@ -4,8 +4,9 @@ services:
   # Frontend Vue.js application
   frontend:
     build:
-      context: ./packages/web/frontend
+      context: .
       dockerfile: Dockerfile
+      target: frontend
     container_name: chronosync-frontend
     restart: unless-stopped
     ports:
@@ -25,8 +26,9 @@ services:
   # Backend Express.js service
   backend:
     build:
-      context: ./packages/web/backend
+      context: .
       dockerfile: Dockerfile
+      target: backend
     container_name: chronosync-backend
     restart: unless-stopped
     ports:
