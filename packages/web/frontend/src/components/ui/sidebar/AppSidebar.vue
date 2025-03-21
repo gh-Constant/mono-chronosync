@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import { Home, Calendar, Settings, User2, LogOut, Menu } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { Home, Calendar, Settings, User2, LogOut, Menu, ChevronLeft } from 'lucide-vue-next'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarTrigger,
   useSidebar
 } from '@/components/ui/sidebar'
@@ -21,7 +16,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const { state } = useSidebar()
+const sidebar = useSidebar()
 
 const menuItems = [
   {
@@ -42,15 +37,6 @@ const menuItems = [
 ]
 
 const userName = computed(() => authStore.user?.name || 'User')
-const userInitials = computed(() => {
-  const name = authStore.user?.name || 'User'
-  return name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-})
 
 function isCurrentRoute(path: string) {
   return route.path === path
@@ -59,63 +45,82 @@ function isCurrentRoute(path: string) {
 function logout() {
   authStore.logout()
 }
+
+const isExpanded = computed(() => sidebar.state.value === 'expanded')
 </script>
 
 <template>
-  <Sidebar collapsible="icon" class="border-r">
-    <SidebarHeader>
-      <div class="flex items-center px-2 py-2" :class="[
-        state === 'expanded' ? 'justify-between' : 'justify-center'
-      ]">
-        <h2 class="text-lg font-semibold truncate px-2" v-if="state === 'expanded'">ChronoSync</h2>
-        <SidebarTrigger class="h-8 w-8 flex items-center justify-center">
-          <Menu class="h-4 w-4" />
+  <div class="fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800"
+       :class="[isExpanded ? 'w-[240px]' : 'w-[64px]']">
+    <!-- Header -->
+    <div class="flex h-16 items-center border-b border-gray-200 dark:border-gray-800 px-3">
+      <div class="flex w-full items-center justify-between">
+        <router-link to="/" class="flex items-center gap-2" v-if="isExpanded">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-600">
+            <div class="h-4 w-4 rounded-md bg-white" />
+          </div>
+          <span class="text-lg font-semibold">ChronoSync</span>
+        </router-link>
+        <SidebarTrigger class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+          <ChevronLeft :class="[
+            'h-5 w-5 transition-transform',
+            isExpanded ? '' : 'rotate-180'
+          ]" />
         </SidebarTrigger>
       </div>
-    </SidebarHeader>
-    <SidebarContent>
-      <SidebarGroup>
-        <SidebarGroupLabel v-if="state === 'expanded'">Menu</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            <SidebarMenuItem v-for="item in menuItems" :key="item.title">
-              <SidebarMenuButton asChild :isActive="route.path === item.to">
-                <router-link :to="item.to">
-                  <component :is="item.icon" class="h-4 w-4" />
-                  <span v-if="state === 'expanded'">{{ item.title }}</span>
-                </router-link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </SidebarContent>
-    <SidebarFooter>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton>
-                <User2 class="h-4 w-4" />
-                <span v-if="state === 'expanded'">{{ userName }}</span>
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start" class="w-48">
-              <DropdownMenuItem @click="logout">
-                <LogOut class="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarFooter>
-  </Sidebar>
-  <ThemeToggle />
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex-1 overflow-y-auto py-4">
+      <nav class="grid gap-1 px-2">
+        <router-link
+          v-for="item in menuItems"
+          :key="item.title"
+          :to="item.to"
+          :class="[
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 dark:text-gray-400 transition-colors',
+            'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800',
+            isCurrentRoute(item.to) ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : ''
+          ]"
+        >
+          <component :is="item.icon" class="h-5 w-5 flex-shrink-0" />
+          <span v-if="isExpanded" class="text-sm font-medium">{{ item.title }}</span>
+        </router-link>
+      </nav>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-gray-200 dark:border-gray-800 p-2">
+      <div class="flex flex-col gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger :class="[
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400',
+            'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+          ]">
+            <User2 class="h-5 w-5 flex-shrink-0" />
+            <span v-if="isExpanded">{{ userName }}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="start" class="w-48">
+            <DropdownMenuItem @click="logout" class="cursor-pointer">
+              <LogOut class="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <div :class="[
+          'flex rounded-lg px-3 py-2',
+          isExpanded ? 'justify-start' : 'justify-center'
+        ]">
+          <ThemeToggle />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-:deep(.sidebar-menu-button) {
-  width: 100%;
+.router-link-active {
+  @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white;
 }
 </style>
