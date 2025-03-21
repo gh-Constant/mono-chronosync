@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { SidebarProvider } from '@/components/ui/sidebar'
 import AppSidebar from '@/components/ui/sidebar/AppSidebar.vue'
-import MainContent from './MainContent.vue'
+import MainContent from '@/components/layout/MainContent.vue'
 </script>
 
 <template>
