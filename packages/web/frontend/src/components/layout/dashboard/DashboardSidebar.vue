@@ -14,7 +14,7 @@ const sidebar = useSidebar()
 
 const menuItems = [
   {
-    title: 'Overview',
+    title: 'Dashboard',
     icon: Home,
     to: '/dashboard'
   },

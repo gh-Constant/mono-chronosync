@@ -8,11 +8,13 @@ const isExpanded = computed(() => sidebar.state.value === 'expanded')
 
 <template>
   <main :class="[
-    'transition-[padding] duration-300',
+    'min-h-screen transition-[padding] duration-300',
     isExpanded ? 'pl-[240px]' : 'pl-[64px]'
   ]">
-    <div class="container mx-auto px-6 py-8">
-      <slot />
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+      <div class="mx-auto max-w-6xl">
+        <slot />
+      </div>
     </div>
   </main>
 </template>

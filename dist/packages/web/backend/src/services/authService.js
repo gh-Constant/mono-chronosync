@@ -44,23 +44,35 @@ exports.registerUser = registerUser;
  * @returns User object and JWT token
  */
 const loginUser = async (credentials) => {
+    console.log('Attempting login for email:', credentials.email);
     // Find user by email with explicit field selection
     const userResult = await (0, database_1.query)(`SELECT id, name, email, hashed_password, image, created_at 
      FROM users 
      WHERE email = $1 
      LIMIT 1`, [credentials.email]);
+    console.log('Database query result:', {
+        hasUser: !!userResult.rows[0],
+        rowCount: userResult.rowCount
+    });
     const user = userResult.rows[0];
     if (!user) {
+        console.log('Login failed: User not found');
         throw new Error('Invalid email or password');
     }
     // Verify password
     if (!user.hashed_password) {
+        console.log('Login failed: User has no password (OAuth account)');
         throw new Error('This account cannot login with password');
     }
     // Ensure hashedPassword is a string
     const storedHash = String(user.hashed_password);
     const isPasswordValid = (0, auth_1.verifyPassword)(credentials.password, storedHash);
+    console.log('Password verification result:', {
+        isValid: isPasswordValid,
+        userId: user.id
+    });
     if (!isPasswordValid) {
+        console.log('Login failed: Invalid password');
         throw new Error('Invalid email or password');
     }
     // Generate JWT token
@@ -70,6 +82,11 @@ const loginUser = async (credentials) => {
         name: user.name,
     };
     const token = (0, auth_1.generateToken)(payload);
+    console.log('Login successful:', {
+        userId: user.id,
+        tokenGenerated: !!token,
+        tokenLength: token.length
+    });
     // Return user info without sensitive data
     const { hashed_password: _, ...userWithoutSensitiveData } = user;
     return {

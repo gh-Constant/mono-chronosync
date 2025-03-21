@@ -46,9 +46,15 @@ const router = createRouter({
       meta: { requiresAuth: true } // Protected route
     },
     {
-      path: '/calendar',
+      path: '/dashboard/calendar',
       name: 'calendar',
       component: () => import('../views/dashboard/calendar.vue'),
+      meta: { requiresAuth: true } // Protected route
+    },
+    {
+      path: '/dashboard/settings',
+      name: 'settings',
+      component: () => import('../views/dashboard/settings.vue'),
       meta: { requiresAuth: true } // Protected route
     },
     {
