@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Home, Calendar, Settings, User2, LogOut, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useSidebar } from '@/components/ui/sidebar'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -15,6 +15,18 @@ const sidebar = useSidebar()
 
 // Detect mobile devices
 const isMobile = useMediaQuery('(max-width: 767px)')
+
+// Track the previous route to detect navigation changes
+const previousPath = ref(route.path)
+
+// Watch for route changes to collapse sidebar on navigation (mobile only)
+watch(() => route.path, (newPath) => {
+  if (isMobile.value && newPath !== previousPath.value && sidebar.state.value === 'expanded') {
+    // Close the sidebar on mobile when navigating between pages
+    sidebar.toggleSidebar()
+  }
+  previousPath.value = newPath
+})
 
 const menuItems = [
   {
