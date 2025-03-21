@@ -14,7 +14,7 @@
               <div class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-sm mb-8">
                 <desktop-icon class="w-12 h-12 text-white" />
               </div>
-              <h2 class="text-3xl font-extrabold mb-2">Chronosync Desktop</h2>
+              <h2 class="text-3xl font-extrabold mb-2">Chrono<span class="text-purple-600">sync</span> Desktop</h2>
               <p class="text-xl font-light text-white/90">Connect your desktop application</p>
             </div>
             
@@ -58,7 +58,7 @@
                 <div class="relative w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
                   <desktop-icon class="w-6 h-6 text-white" />
                 </div>
-                <span class="text-xl font-bold tracking-tight">Chronosync Desktop</span>
+                <span class="text-xl font-bold tracking-tight">Chrono<span class="text-purple-600">sync</span> Desktop</span>
               </div>
               
               <!-- Desktop Connection Status -->
@@ -193,7 +193,7 @@
                   class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <span v-if="isLoading" class="inline-flex items-center">
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
