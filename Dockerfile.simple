@@ -1,0 +1,66 @@
+# Use a specific node version for better compatibility
+FROM node:20-alpine
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV NX_DAEMON=false
+ENV NX_VERBOSE_LOGGING=true
+
+# Install pnpm and nx globally
+RUN npm install -g pnpm@10.6.1 nx
+
+# Set working directory
+WORKDIR /app
+
+# Copy the entire project
+COPY . .
+
+# Install all dependencies with better error reporting
+RUN pnpm install --no-frozen-lockfile || (echo "PNPM install failed" && exit 1)
+
+# List directories for debugging
+RUN echo "Listing project structure:" && \
+    ls -la && \
+    echo "Listing packages:" && \
+    ls -la packages && \
+    echo "Listing web packages:" && \
+    ls -la packages/web
+
+# Build common package first
+RUN echo "Building common package..." && \
+    pnpm build:web:common || (echo "Common build failed" && exit 1)
+
+# Build backend and frontend
+RUN echo "Building backend and frontend..." && \
+    pnpm build:web:backend || (echo "Backend build failed" && exit 1) && \
+    pnpm build:web:frontend || (echo "Frontend build failed" && exit 1)
+
+# Create frontend-specific nginx configuration
+RUN mkdir -p /nginx
+RUN echo 'server { \
+    listen 80; \
+    root /app/packages/web/frontend/dist; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /nginx/frontend.conf
+
+# Create startup script to run both services
+RUN echo '#!/bin/sh \n\
+if [ "$SERVICE_TYPE" = "backend" ]; then \
+    echo "Starting backend service..." \
+    node dist/packages/web/backend/index.js \
+elif [ "$SERVICE_TYPE" = "frontend" ]; then \
+    echo "Starting frontend service..." \
+    nginx -c /nginx/frontend.conf -g "daemon off;" \
+else \
+    echo "SERVICE_TYPE environment variable must be set to either 'frontend' or 'backend'" \
+    exit 1 \
+fi' > /app/start.sh && chmod +x /app/start.sh
+
+# Expose ports for both services
+EXPOSE 3005 80
+
+# Set entrypoint to our start script
+ENTRYPOINT ["/app/start.sh"] 
