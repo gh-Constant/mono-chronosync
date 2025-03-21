@@ -5,13 +5,13 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: frontend
+      dockerfile: Dockerfile.simple
     container_name: chronosync-frontend
     restart: unless-stopped
     ports:
       - "4173:80"
     environment:
+      - SERVICE_TYPE=frontend
       - SERVICE_FQDN_FRONTEND
       - VITE_API_URL=${API_URL:-http://localhost:3005/api}
     depends_on:
@@ -27,13 +27,13 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile
-      target: backend
+      dockerfile: Dockerfile.simple
     container_name: chronosync-backend
     restart: unless-stopped
     ports:
       - "3005:3005"
     environment:
+      - SERVICE_TYPE=backend
       - SERVICE_FQDN_API
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=3005
