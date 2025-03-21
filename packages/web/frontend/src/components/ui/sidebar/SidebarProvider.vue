@@ -2,7 +2,7 @@
 import { cn } from '@/lib/utils'
 import { useEventListener, useMediaQuery, useVModel } from '@vueuse/core'
 import { TooltipProvider } from 'reka-ui'
-import { computed, type HTMLAttributes, type Ref, ref, watch, onMounted } from 'vue'
+import { computed, type HTMLAttributes, type Ref, ref, watch } from 'vue'
 import { 
   provideSidebarContext, 
   SIDEBAR_KEYBOARD_SHORTCUT, 
