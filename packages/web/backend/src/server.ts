@@ -1,7 +1,10 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import csrf from 'csrf';
 import routes from './routes';
 import { initializeDatabase } from './config/database';
 import { configurePassport } from './config/passport';
@@ -18,6 +21,44 @@ export const createServer = async (): Promise<Application> => {
     console.error('Failed to initialize PostgreSQL database:', error);
     process.exit(1);
   }
+  
+  // Apply Helmet middleware for securing HTTP headers
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // For compatibility with OAuth redirects
+  }));
+  
+  // Configure rate limiting
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per window
+    standardHeaders: 'draft-7', // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    message: 'Too many requests, please try again later.',
+  });
+  
+  // Apply rate limiting to all routes
+  app.use(apiLimiter);
+  
+  // Setup more strict rate limits for auth endpoints
+  const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    limit: 10, // 10 login attempts per hour
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: 'Too many login attempts, please try again later.',
+  });
+  
+  // Will be applied to auth routes in the routes configuration
   
   // CORS middleware with more robust configuration
   app.use(cors({
@@ -36,8 +77,8 @@ export const createServer = async (): Promise<Application> => {
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
-    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With', 'CSRF-Token'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range', 'CSRF-Token'],
     credentials: true,
     maxAge: 86400 // 24 hours
   }));
@@ -45,16 +86,72 @@ export const createServer = async (): Promise<Application> => {
   // Ensure OPTIONS requests are handled properly
   app.options('*', cors());
   
-  // Basic middleware
+  // JSON Body parser middleware with validation
   app.use(express.json());
   app.use(cookieParser()); // Add cookie parser middleware
   
   // Apply RGPD middleware
   app.use(rgpdMiddleware);
+  
+  // JSON validation middleware
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (!req.is('application/json') || !req.body) {
+      return next();
+    }
+    
+    try {
+      // If we get here, express.json() middleware already parsed the body successfully
+      next();
+    } catch (e) {
+      return res.status(400).json({ message: 'Invalid JSON in request body' });
+    }
+  });
+
+  // Initialize CSRF protection
+  const tokens = new csrf();
+  
+  // Middleware for CSRF token validation
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Skip CSRF protection for non-mutating methods
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+      return next();
+    }
+    
+    // Skip CSRF for OAuth callback routes and API endpoints with JWT auth
+    if (req.path.startsWith('/api/auth/') || req.path.includes('/oauth/callback')) {
+      return next();
+    }
+    
+    const csrfToken = req.headers['csrf-token'] || req.headers['x-csrf-token'];
+    
+    // Client doesn't have a token yet
+    if (!csrfToken) {
+      // Generate a new token
+      const newToken = tokens.create(process.env.CSRF_SECRET || 'csrf-secret-key');
+      res.setHeader('CSRF-Token', newToken);
+      return next();
+    }
+    
+    // Validate the token
+    if (tokens.verify(process.env.CSRF_SECRET || 'csrf-secret-key', csrfToken as string)) {
+      next();
+    } else {
+      res.status(403).json({ message: 'Invalid CSRF token' });
+    }
+  });
+  
+  // Add CSRF token generation endpoint
+  app.get('/api/csrf-token', (req: Request, res: Response) => {
+    const token = tokens.create(process.env.CSRF_SECRET || 'csrf-secret-key');
+    res.json({ csrfToken: token });
+  });
 
   // Initialize and configure Passport
   app.use(passport.initialize());
   configurePassport();
+
+  // Export auth rate limiter for use in route configuration
+  app.locals.authLimiter = authLimiter;
 
   // Mount all routes under /api
   app.use('/api', routes);

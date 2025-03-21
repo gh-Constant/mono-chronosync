@@ -1,14 +1,32 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 import * as authController from '../controllers/authController';
 import { authenticate } from '../middlewares/authMiddleware';
 import { validate, registerSchema, loginSchema, passwordResetRequestSchema, passwordResetConfirmSchema } from '../validators/authValidators';
+import { rateLimit } from 'express-rate-limit';
 
 const router = Router();
+
+// Create an auth-specific rate limiter for sensitive routes (if not provided by app.locals)
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 10, // 10 attempts per hour
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: 'Too many authentication attempts, please try again later',
+});
+
+// Apply auth limiter to sensitive routes
+const applyAuthLimiter = (req: Request, res: Response, next: NextFunction) => {
+  // Use app-wide limiter if available, otherwise use local one
+  const limiter = req.app.locals.authLimiter || authLimiter;
+  return limiter(req, res, next);
+};
 
 // Register a new user
 router.post(
   '/register',
+  applyAuthLimiter, // Apply rate limiting
   validate(registerSchema),
   authController.register
 );
@@ -16,6 +34,7 @@ router.post(
 // Login user
 router.post(
   '/login',
+  applyAuthLimiter, // Apply rate limiting
   validate(loginSchema),
   authController.login
 );
@@ -30,6 +49,7 @@ router.get(
 // Password reset request
 router.post(
   '/password-reset/request',
+  applyAuthLimiter, // Apply rate limiting
   validate(passwordResetRequestSchema),
   authController.requestPasswordReset
 );
@@ -37,6 +57,7 @@ router.post(
 // Password reset confirmation
 router.post(
   '/password-reset/confirm',
+  applyAuthLimiter, // Apply rate limiting
   validate(passwordResetConfirmSchema),
   authController.confirmPasswordReset
 );
