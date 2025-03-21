@@ -17,6 +17,9 @@ COPY packages ./packages
 # Install all dependencies
 RUN pnpm install
 
+# Set environment variable to disable NX daemon
+ENV NX_DAEMON=false
+
 # Build common package first
 FROM base AS common-builder
 RUN pnpm build:web:common
