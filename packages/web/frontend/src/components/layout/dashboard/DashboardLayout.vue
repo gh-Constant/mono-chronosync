@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { SidebarProvider } from '@/components/ui/sidebar'
-import DashboardSidebar from './DashboardSidebar.vue'
-import DashboardContent from './DashboardContent.vue'
+import DashboardSidebar from '@/components/layout/dashboard/DashboardSidebar.vue'
+import DashboardContent from '@/components/layout/dashboard/DashboardContent.vue'
 </script>
 
 <template>

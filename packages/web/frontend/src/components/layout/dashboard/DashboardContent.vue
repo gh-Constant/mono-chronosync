@@ -19,8 +19,7 @@ const contentPadding = computed(() => {
     :style="{
       '--sidebar-width': SIDEBAR_WIDTH,
       '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-      paddingLeft: contentPadding,
-      paddingTop: topPadding
+      paddingLeft: contentPadding
     }"
     class="min-h-screen transition-all duration-300"
   >
