@@ -59,7 +59,7 @@ const isExpanded = computed(() => sidebar.state.value === 'expanded')
           <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-600">
             <div class="h-4 w-4 rounded-md bg-white" />
           </div>
-          <span class="text-lg font-semibold">ChronoSync</span>
+          <span class="text-lg font-semibold">Chrono<span class="text-purple-600">sync</span></span>
         </router-link>
         <SidebarTrigger class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
           <ChevronLeft :class="[

@@ -4,7 +4,7 @@
       <!-- Logo -->
       <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-900 dark:text-white animate-quick-slide-down">
-          Chrono<span class="text-blue-600">sync</span>
+          Chrono<span class="text-purple-600">sync</span>
         </h1>
       </div>
 
