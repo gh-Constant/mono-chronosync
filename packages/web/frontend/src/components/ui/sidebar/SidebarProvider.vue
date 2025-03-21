@@ -2,8 +2,15 @@
 import { cn } from '@/lib/utils'
 import { useEventListener, useMediaQuery, useVModel } from '@vueuse/core'
 import { TooltipProvider } from 'reka-ui'
-import { computed, type HTMLAttributes, type Ref, ref } from 'vue'
-import { provideSidebarContext, SIDEBAR_KEYBOARD_SHORTCUT, SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from './utils'
+import { computed, type HTMLAttributes, type Ref, ref, watch, onMounted } from 'vue'
+import { 
+  provideSidebarContext, 
+  SIDEBAR_KEYBOARD_SHORTCUT, 
+  SIDEBAR_WIDTH, 
+  SIDEBAR_WIDTH_ICON,
+  SIDEBAR_COOKIE_NAME,
+  SIDEBAR_COOKIE_MAX_AGE 
+} from './utils'
 
 const props = withDefaults(defineProps<{
   defaultOpen?: boolean
@@ -21,8 +28,38 @@ const emits = defineEmits<{
 // Detect mobile devices for responsive behavior
 const isMobile = useMediaQuery('(max-width: 767px)')
 
-// Remove cookie functions and always use defaultOpen
-const defaultValue = props.defaultOpen ?? false
+// Read cookie value (for desktop only)
+function getCookieValue(): boolean | null {
+  if (typeof document === 'undefined') return null
+  
+  const cookieValue = document.cookie
+    .split('; ')
+    .find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+    ?.split('=')[1]
+    
+  if (cookieValue === 'expanded') return true
+  if (cookieValue === 'collapsed') return false
+  return null
+}
+
+// Set cookie value (for desktop only)
+function setCookieValue(value: boolean): void {
+  if (typeof document === 'undefined' || isMobile.value) return
+  
+  const state = value ? 'expanded' : 'collapsed'
+  document.cookie = `${SIDEBAR_COOKIE_NAME}=${state}; max-age=${SIDEBAR_COOKIE_MAX_AGE}; path=/; samesite=strict`
+}
+
+// Determine initial value (from cookie for desktop, props for mobile)
+const initialValue = (): boolean => {
+  if (!isMobile.value) {
+    const cookieValue = getCookieValue()
+    if (cookieValue !== null) return cookieValue
+  }
+  return props.defaultOpen
+}
+
+const defaultValue = initialValue()
 
 const open = useVModel(props, 'open', emits, {
   defaultValue,
@@ -30,14 +67,19 @@ const open = useVModel(props, 'open', emits, {
 }) as Ref<boolean>
 
 function setOpen(value: boolean) {
-  open.value = value // emits('update:open', value)
-  // Remove cookie setting
+  open.value = value
 }
 
-// Simple toggle function
 function toggleSidebar() {
   setOpen(!open.value)
 }
+
+// Update cookie when sidebar state changes (desktop only)
+watch(open, (newValue) => {
+  if (!isMobile.value) {
+    setCookieValue(newValue)
+  }
+}, { immediate: true })
 
 useEventListener('keydown', (event: KeyboardEvent) => {
   if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
@@ -46,13 +88,13 @@ useEventListener('keydown', (event: KeyboardEvent) => {
   }
 })
 
-// This makes it easier to style the sidebar with Tailwind classes
+// State computed property for styling
 const state = computed(() => open.value ? 'expanded' : 'collapsed')
 
-// Mobile sidebar state (for compatibility)
+// Mobile sidebar state (for API compatibility)
 const openMobile = ref(false)
 function setOpenMobile(value: boolean) {
-  // No longer actively used, but kept for API compatibility
+  // Kept for API compatibility
 }
 
 provideSidebarContext({

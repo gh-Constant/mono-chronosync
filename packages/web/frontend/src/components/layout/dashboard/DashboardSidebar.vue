@@ -16,18 +16,6 @@ const sidebar = useSidebar()
 // Detect mobile devices
 const isMobile = useMediaQuery('(max-width: 767px)')
 
-// Track the previous route to detect navigation changes
-const previousPath = ref(route.path)
-
-// Watch for route changes to collapse sidebar on navigation (mobile only)
-watch(() => route.path, (newPath) => {
-  if (isMobile.value && newPath !== previousPath.value && sidebar.state.value === 'expanded') {
-    // Close the sidebar on mobile when navigating between pages
-    sidebar.toggleSidebar()
-  }
-  previousPath.value = newPath
-})
-
 const menuItems = [
   {
     title: 'Dashboard',
@@ -65,6 +53,13 @@ const isSidebarHidden = computed(() => isMobile.value && !isExpanded.value)
 function toggleSidebar() {
   sidebar.toggleSidebar()
 }
+
+// Close sidebar when changing routes on mobile
+watch(() => route.path, () => {
+  if (isMobile.value && isExpanded.value) {
+    toggleSidebar()
+  }
+})
 
 // Swipe detection for mobile
 const touchStartX = ref(0)

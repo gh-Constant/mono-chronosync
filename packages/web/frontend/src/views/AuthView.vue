@@ -4,15 +4,16 @@
     <div class="relative z-50">
       <Navbar />
     </div>
+    
     <!-- Split Screen Auth Container -->
-    <div class="flex flex-1">
-      <!-- Decorative Side -->
+    <div class="flex flex-1 flex-col lg:flex-row">
+      <!-- Decorative Side - hidden on mobile, takes 1/2 width on large screens -->
       <div class="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-blue-600 to-purple-600 overflow-hidden">
         <!-- Pattern overlay -->
         <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTU0LjYyNyAyMi41SDM3LjVhMi41IDIuNSAwIDAgMSAwLTVoMTkuMTI3YTcuNSA3LjUgMCAwIDAgNy41LTcuNXYtNUEyLjUgMi41IDAgMCAxIDY2LjYyNyAwSDY5djIuNWEyLjUgMi41IDAgMCAxLTUgMHYtLjEyN2wtLjEyNy4xMjctMTkuMTI3IDBhNy41IDcuNSAwIDAgMC03LjUgNy41djEwYTcuNSA3LjUgMCAwIDAgNy41IDcuNWgxOS4xMjdhMi41IDIuNSAwIDAgMSAwIDVINDkuNjI3YTcuNSA3LjUgMCAwIDAtNy41IDcuNXYxMGE3LjUgNy41IDAgMCAwIDcuNSA3LjVoMTcuMzI1TTI4Ljc1IDQ0Ljc1czEuNSAxLjUgMS41IDUuMjVIOTBWMjBIMzcuNWE3LjUgNy41IDAgMCAxLTcuNS03LjV2LTVhMi41IDIuNSAwIDAgMC0yLjUtMi41SDI1djVhMi41IDIuNSAwIDAgMS01IDB2LTVIMTVWMTBIMHY1YTIuNSAyLjUgMCAwIDEtNSAwdi01SDIwdjVhMi41IDIuNSAwIDAgMCAyLjUgMi41aDJjNS41MjMgMCAxMCA0LjQ3NyAxMCAxMHYxNy4yNXMtMTAuNzUgMS41LTEuNSAxMGgxLjI1VjUwSDI5djQuNzVoLS4yNXoiLz48L2c+PC9zdmc+')]"></div>
         
         <!-- Content -->
-        <div class="relative z-10 flex flex-col items-center justify-center w-full p-12 text-white">
+        <div class="relative z-10 flex flex-col items-center justify-center w-full p-8 sm:p-12 text-white">
           <div class="max-w-md text-center">
             <div class="mb-8">
               <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm mb-6">
@@ -24,9 +25,9 @@
               <p class="text-xl font-light text-white/90">Master your digital time</p>
             </div>
             
-            <div class="space-y-8">
+            <div class="space-y-6">
               <div class="p-6 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div class="flex items-start mb-4">
+                <div class="flex items-start">
                   <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
                     <clock-icon class="w-6 h-6" />
                   </div>
@@ -38,7 +39,7 @@
               </div>
               
               <div class="p-6 bg-white/10 backdrop-blur-sm rounded-xl">
-                <div class="flex items-start mb-4">
+                <div class="flex items-start">
                   <div class="flex-shrink-0 bg-white/20 rounded-lg p-3">
                     <lock-icon class="w-6 h-6" />
                   </div>
@@ -53,14 +54,15 @@
         </div>
       </div>
       
-      <!-- Auth Form Side -->
+      <!-- Auth Form Side - full width on mobile, 1/2 width on large screens -->
       <div class="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8">
-        <div class="w-full max-w-md py-8">
+        <div class="w-full max-w-md py-4 md:py-8">
           <!-- Auth Card -->
           <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
             <!-- Card Header with Logo -->
-            <div class="p-8 text-center">
-              <div class="inline-flex items-center gap-2 mb-8 lg:hidden">
+            <div class="p-6 sm:p-8 text-center">
+              <!-- Mobile logo - only visible on mobile and medium screens -->
+              <div class="inline-flex items-center gap-2 mb-6 lg:hidden">
                 <div class="relative w-8 h-8">
                   <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
                   <div class="absolute inset-1 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
@@ -70,18 +72,18 @@
                 <span class="text-xl font-bold tracking-tight">Chronosync</span>
               </div>
               
-              <h2 class="text-2xl md:text-3xl font-extrabold mb-4 tracking-tight">
+              <h2 class="text-xl md:text-2xl lg:text-3xl font-extrabold mb-3 tracking-tight">
                 {{ activeTab === 'login' ? 'Welcome back' : 'Create your account' }}
               </h2>
-              <p class="text-gray-600 dark:text-gray-400 mb-6 font-light">
+              <p class="text-gray-600 dark:text-gray-400 mb-5 text-sm sm:text-base font-light">
                 {{ activeTab === 'login' ? 'Enter your credentials to access your account' : 'Join thousands of users to boost productivity' }}
               </p>
               
               <!-- Tab switcher -->
-              <div class="bg-gray-100 dark:bg-gray-900 rounded-full p-1 flex mb-8">
+              <div class="bg-gray-100 dark:bg-gray-900 rounded-full p-1 flex mb-6">
                 <button @click="activeTab = 'login'" 
                         :class="[
-                          'w-1/2 py-2.5 rounded-full text-sm font-medium transition-all',
+                          'w-1/2 py-2 md:py-2.5 rounded-full text-sm font-medium transition-all',
                           activeTab === 'login' 
                             ? 'bg-white dark:bg-gray-800 shadow-sm text-purple-600 dark:text-purple-400' 
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
@@ -90,7 +92,7 @@
                 </button>
                 <button @click="activeTab = 'signup'" 
                         :class="[
-                          'w-1/2 py-2.5 rounded-full text-sm font-medium transition-all',
+                          'w-1/2 py-2 md:py-2.5 rounded-full text-sm font-medium transition-all',
                           activeTab === 'signup' 
                             ? 'bg-white dark:bg-gray-800 shadow-sm text-purple-600 dark:text-purple-400' 
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
@@ -101,42 +103,42 @@
             </div>
             
             <!-- Card Body -->
-            <div class="px-8 pb-8">
+            <div class="px-6 sm:px-8 pb-6 sm:pb-8">
               <!-- Social Login Section -->
-              <div class="mb-6">
-                <div class="grid grid-cols-3 gap-3">
+              <div class="mb-5">
+                <div class="grid grid-cols-3 gap-2 sm:gap-3">
                   <button
                     @click="handleOAuthLogin('google')"
-                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
+                    class="flex justify-center py-2 sm:py-2.5 px-2 sm:px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
                   >
                     <google-icon class="w-5 h-5" />
                   </button>
                   <button
                     disabled
                     title="Apple Sign In coming soon"
-                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed items-center"
+                    class="flex justify-center py-2 sm:py-2.5 px-2 sm:px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 opacity-50 cursor-not-allowed items-center"
                   >
                     <apple-icon class="w-5 h-5" />
                   </button>
                   <button
                     @click="handleOAuthLogin('github')"
-                    class="flex justify-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
+                    class="flex justify-center py-2 sm:py-2.5 px-2 sm:px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors items-center"
                   >
                     <github-icon class="w-5 h-5" />
                   </button>
                 </div>
                 
-                <div class="relative flex items-center mt-6 mb-6">
+                <div class="relative flex items-center mt-5 mb-5">
                   <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-                  <span class="flex-shrink-0 mx-4 text-sm text-gray-500 dark:text-gray-400">or continue with email</span>
+                  <span class="flex-shrink-0 mx-4 text-xs sm:text-sm text-gray-500 dark:text-gray-400">or continue with email</span>
                   <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
               </div>
               
               <!-- Login Form -->
-              <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="space-y-5">
+              <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="space-y-4">
                 <div>
-                  <label for="login-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+                  <label for="login-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                   <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <mail-icon class="h-5 w-5 text-gray-400" />
@@ -153,9 +155,9 @@
                 </div>
                 
                 <div>
-                  <div class="flex justify-between mb-1.5">
+                  <div class="flex justify-between mb-1">
                     <label for="login-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                    <a href="#" class="text-sm text-purple-600 dark:text-purple-400 hover:underline font-medium">Forgot password?</a>
+                    <a href="#" class="text-sm text-purple-600 dark:text-purple-400 hover:underline font-medium">Forgot?</a>
                   </div>
                   <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -193,19 +195,19 @@
                 
                 <button 
                   type="submit" 
-                  class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform hover:-translate-y-0.5"
+                  class="w-full py-2.5 sm:py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform hover:-translate-y-0.5"
                 >
                   Log In
                 </button>
               </form>
               
               <!-- Signup Form -->
-              <form v-if="activeTab === 'signup'" @submit.prevent="handleSignup" class="space-y-5">
+              <form v-if="activeTab === 'signup'" @submit.prevent="handleSignup" class="space-y-4">
                 <!-- Error Alert -->
-                <div v-if="error" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div v-if="error" class="p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
                   <div class="flex">
                     <div class="flex-shrink-0">
-                      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <svg class="h-4 w-4 sm:h-5 sm:w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                       </svg>
                     </div>
@@ -213,7 +215,7 @@
                       <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
                         There was an error with your submission
                       </h3>
-                      <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                      <div class="mt-1 text-xs sm:text-sm text-red-700 dark:text-red-300">
                         <p v-for="(line, index) in error.split('\n')" :key="index">{{ line }}</p>
                       </div>
                     </div>
@@ -221,7 +223,7 @@
                 </div>
 
                 <div>
-                  <label for="signup-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Username</label>
+                  <label for="signup-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
                   <input 
                     id="signup-username" 
                     v-model="signupForm.name"
@@ -234,7 +236,7 @@
                 </div>
                 
                 <div>
-                  <label for="signup-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
+                  <label for="signup-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                   <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <mail-icon class="h-5 w-5 text-gray-400" />
@@ -251,7 +253,7 @@
                 </div>
                 
                 <div>
-                  <label for="signup-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
+                  <label for="signup-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
                   <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <lock-icon class="h-5 w-5 text-gray-400" />
@@ -265,8 +267,8 @@
                       placeholder="••••••••"
                     />
                   </div>
-                  <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                    <shield-check-icon class="w-3.5 h-3.5 mr-1" />
+                  <p class="mt-1 text-2xs sm:text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                    <shield-check-icon class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" />
                     Must be at least 8 characters with a number and special character
                   </p>
                 </div>
@@ -279,15 +281,15 @@
                     required
                     class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                   />
-                  <label for="agree-terms" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                    I agree to the <a href="#" class="text-purple-600 dark:text-purple-400 hover:underline font-medium">Terms of Service</a> and <a href="#" class="text-purple-600 dark:text-purple-400 hover:underline font-medium">Privacy Policy</a>
+                  <label for="agree-terms" class="ml-2 block text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                    I agree to the <a href="#" class="text-purple-600 dark:text-purple-400 hover:underline font-medium">Terms</a> and <a href="#" class="text-purple-600 dark:text-purple-400 hover:underline font-medium">Privacy Policy</a>
                   </label>
                 </div>
                 
                 <button 
                   type="submit" 
                   :disabled="isLoading || !signupForm.agreeTerms"
-                  class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full py-2.5 sm:py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {{ isLoading ? 'Creating Account...' : 'Create Account' }}
                 </button>
@@ -295,7 +297,7 @@
             </div>
             
             <!-- Mobile Footer -->
-            <div class="lg:hidden p-6 bg-gray-50 dark:bg-gray-900 text-center text-sm text-gray-600 dark:text-gray-400">
+            <div class="lg:hidden p-4 sm:p-6 bg-gray-50 dark:bg-gray-900 text-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               {{ activeTab === 'login' ? "Don't have an account?" : "Already have an account?" }}
               <button 
                 @click="activeTab = activeTab === 'login' ? 'signup' : 'login'"
@@ -329,7 +331,21 @@ import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import Navbar from '@/components/layout/Navbar.vue'
 
-// Router and Route
+// Types
+type OAuthProvider = 'google' | 'github' | 'apple'
+interface LoginForm {
+  email: string
+  password: string
+  rememberMe: boolean
+}
+interface SignupForm {
+  name: string
+  email: string
+  password: string
+  agreeTerms: boolean
+}
+
+// Router and route
 const router = useRouter()
 const route = useRoute()
 
@@ -338,7 +354,22 @@ const authStore = useAuthStore()
 const { isLoading, error } = storeToRefs(authStore)
 
 // Active tab state (login or signup)
-const activeTab = ref('login')
+const activeTab = ref<'login' | 'signup'>('login')
+
+// Login form state
+const loginForm = ref<LoginForm>({
+  email: '',
+  password: '',
+  rememberMe: false
+})
+
+// Signup form state
+const signupForm = ref<SignupForm>({
+  name: '',
+  email: '',
+  password: '',
+  agreeTerms: false
+})
 
 // Set the active tab based on URL query parameter
 onMounted(() => {
@@ -348,54 +379,32 @@ onMounted(() => {
   }
 })
 
-// Login form state
-const loginForm = ref({
-  email: '',
-  password: '',
-  rememberMe: false
-})
-
-// Signup form state
-const signupForm = ref({
-  name: '',
-  email: '',
-  password: '',
-  agreeTerms: false
-})
-
-// Form handlers
-const handleLogin = async () => {
-  const success = await authStore.login(
-    loginForm.value.email,
-    loginForm.value.password,
-    loginForm.value.rememberMe
-  )
+// Auth handlers
+async function handleLogin(): Promise<void> {
+  const { email, password, rememberMe } = loginForm.value
+  const success = await authStore.login(email, password, rememberMe)
   
   if (success) {
     router.push('/oauth-callback')
   }
 }
 
-const handleSignup = async () => {
+async function handleSignup(): Promise<void> {
   if (!signupForm.value.agreeTerms) {
     return
   }
   
-  const success = await authStore.signup(
-    signupForm.value.name,
-    signupForm.value.email,
-    signupForm.value.password
-  )
+  const { name, email, password } = signupForm.value
+  const success = await authStore.signup(name, email, password)
   
   if (success) {
     router.push('/oauth-callback')
   }
 }
 
-// OAuth login handler
-const handleOAuthLogin = (provider: 'google' | 'github' | 'apple') => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3005/api';
-  window.location.href = `${apiUrl}/auth/${provider}`;
+function handleOAuthLogin(provider: OAuthProvider): void {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3005/api'
+  window.location.href = `${apiUrl}/auth/${provider}`
 }
 
 // Custom Google icon since it's not in lucide-vue-next
