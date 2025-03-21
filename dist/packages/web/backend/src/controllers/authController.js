@@ -130,21 +130,43 @@ exports.confirmPasswordReset = confirmPasswordReset;
  * @route GET /api/auth/:provider/callback
  */
 const oauthCallback = (req, res) => {
+    console.log('OAuth callback received:', {
+        provider: req.params.provider,
+        query: req.query,
+        hasUser: !!req.user,
+        redirectUri: req.query.redirect_uri
+    });
     try {
         // Passport.js attaches the user object to the request
         const authData = req.user;
         if (!authData || !authData.token) {
+            console.error('OAuth callback - No auth data or token:', { authData });
             return res.redirect('/login?error=authentication-failed');
         }
         // Check if redirect_uri was provided in the query params
         // This would be passed from the initial OAuth request
         const redirectUri = req.query.redirect_uri;
+        console.log('OAuth callback - Processing redirect:', {
+            hasRedirectUri: !!redirectUri,
+            redirectUri,
+            tokenLength: authData.token.length
+        });
         // If there's a valid desktop app redirect URI, use it
         if (redirectUri && isValidRedirectUri(redirectUri)) {
-            return res.redirect(`${redirectUri}?token=${authData.token}`);
+            const finalRedirectUrl = `${redirectUri}?token=${encodeURIComponent(authData.token)}`;
+            console.log('OAuth callback - Redirecting to desktop app:', {
+                redirectUri,
+                finalUrl: finalRedirectUrl
+            });
+            return res.redirect(finalRedirectUrl);
         }
         // Otherwise, redirect to frontend as usual
-        return res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?token=${authData.token}`);
+        const frontendRedirectUrl = `${process.env.FRONTEND_URL}/oauth-callback?token=${encodeURIComponent(authData.token)}`;
+        console.log('OAuth callback - Redirecting to frontend:', {
+            frontendUrl: process.env.FRONTEND_URL,
+            finalUrl: frontendRedirectUrl
+        });
+        return res.redirect(frontendRedirectUrl);
     }
     catch (error) {
         console.error('OAuth callback error:', error);
@@ -160,11 +182,22 @@ const isValidRedirectUri = (uri) => {
     try {
         // Define allowed URI schemes for desktop apps
         const validSchemes = ['myapp', 'chronosync'];
+        console.log('Validating redirect URI:', {
+            uri,
+            validSchemes
+        });
         // Basic URI validation
         const url = new URL(uri);
-        return validSchemes.includes(url.protocol.replace(':', ''));
+        const isValid = validSchemes.includes(url.protocol.replace(':', ''));
+        console.log('Redirect URI validation result:', {
+            uri,
+            protocol: url.protocol,
+            isValid
+        });
+        return isValid;
     }
     catch (err) {
+        console.error('Invalid redirect URI:', err);
         return false;
     }
 };
