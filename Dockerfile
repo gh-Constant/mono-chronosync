@@ -1,6 +1,11 @@
 # Base stage for dependencies and build
 FROM node:20-alpine AS base
 
+# Set environment variables
+ENV NODE_ENV=production
+ENV NX_DAEMON=false
+ENV NX_VERBOSE_LOGGING=true
+
 # Install pnpm
 RUN npm install -g pnpm@10.6.1 nx
 
@@ -14,23 +19,38 @@ COPY tsconfig.base.json nx.json ./
 # Copy source code
 COPY packages ./packages
 
-# Install all dependencies
-RUN pnpm install
+# Install all dependencies with verbose logging
+RUN pnpm install --no-frozen-lockfile
 
-# Set environment variable to disable NX daemon
-ENV NX_DAEMON=false
+# Check package structure for debugging
+RUN ls -la && ls -la packages && ls -la packages/web && ls -la packages/web/common
 
 # Build common package first
 FROM base AS common-builder
-RUN pnpm build:web:common
+# Add verbose output for debugging
+RUN echo "Building @chronosync/common package..."
+RUN pnpm build:web:common || (echo "Common build failed with error code $?" && exit 1)
+RUN echo "Common package built successfully"
 
 # Build backend 
 FROM common-builder AS backend-builder
-RUN pnpm build:web:backend
+# Add verbose output for debugging
+RUN echo "Building backend package..."
+# Install any backend-specific dependencies if needed
+RUN cd packages/web/backend && pnpm install --no-frozen-lockfile
+# Try building with direct nx command for more debugging info
+RUN nx build web-backend --verbose || (echo "Backend build failed with error code $?" && exit 1)
+RUN echo "Backend package built successfully"
 
 # Build frontend
 FROM common-builder AS frontend-builder
-RUN pnpm build:web:frontend
+# Add verbose output for debugging
+RUN echo "Building frontend package..."
+# Install any frontend-specific dependencies if needed
+RUN cd packages/web/frontend && pnpm install --no-frozen-lockfile
+# Try building with direct nx command for more debugging info
+RUN nx build web-frontend --verbose || (echo "Frontend build failed with error code $?" && exit 1)
+RUN echo "Frontend package built successfully"
 
 # Backend production image
 FROM node:20-alpine AS backend
