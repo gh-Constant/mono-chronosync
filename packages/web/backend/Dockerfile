@@ -6,16 +6,27 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@10.6.1
 
-# Copy package files
-COPY package.json ./
+# Copy the root package.json, pnpm-workspace.yaml, and pnpm-lock.yaml
+COPY ../../package.json ./
+COPY ../../pnpm-workspace.yaml ./
+COPY ../../pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install
+# Copy the common package
+COPY ../common ./packages/web/common
 
-# Copy app source
-COPY . .
+# Copy the backend package
+COPY . ./packages/web/backend
 
-# Build TypeScript
+# Set workdir to backend folder
+WORKDIR /app/packages/web/backend
+
+# Install dependencies from the root
+RUN cd /app && pnpm install
+
+# Build common package first
+RUN cd /app/packages/web/common && pnpm run build
+
+# Build the backend
 RUN pnpm run build
 
 # Add health check endpoint
