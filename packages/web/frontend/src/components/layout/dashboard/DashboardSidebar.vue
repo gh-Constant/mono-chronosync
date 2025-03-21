@@ -57,7 +57,7 @@ function toggleSidebar() {
 // Swipe detection for mobile
 const touchStartX = ref(0)
 const touchEndX = ref(0)
-const MIN_SWIPE_DISTANCE = 70
+const MIN_SWIPE_DISTANCE = 50
 const EDGE_THRESHOLD = 50 // Distance from edge to detect swipe
 
 function handleTouchStart(e: TouchEvent) {
