@@ -12,13 +12,6 @@ const contentPadding = computed(() => {
   return isExpanded.value ? 'var(--sidebar-width)' : 'var(--sidebar-width-icon)'
 })
 
-// Compute top padding for mobile when sidebar is collapsed
-const topPadding = computed(() => {
-  if (isMobile.value && sidebar.state.value === 'collapsed') {
-    return '3rem' // Add extra top padding when the floating button is visible
-  }
-  return '0'
-})
 </script>
 
 <template>
