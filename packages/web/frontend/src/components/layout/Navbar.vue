@@ -30,7 +30,7 @@ const showNavbar = computed(() => {
                 <div class="w-4 h-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full"></div>
               </div>
             </div>
-            <span class="text-xl font-bold text-gray-900 dark:text-white">Chronosync</span>
+            <span class="text-xl font-bold text-gray-900 dark:text-white">Chrono<span class="text-purple-600">sync</span></span>
           </router-link>
         </div>
 
