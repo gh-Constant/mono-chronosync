@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Home, Calendar, Settings, User2, LogOut, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useSidebar } from '@/components/ui/sidebar'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -53,9 +53,55 @@ const isSidebarHidden = computed(() => isMobile.value && !isExpanded.value)
 function toggleSidebar() {
   sidebar.toggleSidebar()
 }
+
+// Swipe detection for mobile
+const touchStartX = ref(0)
+const touchEndX = ref(0)
+const MIN_SWIPE_DISTANCE = 70
+const EDGE_THRESHOLD = 50 // Distance from edge to detect swipe
+
+function handleTouchStart(e: TouchEvent) {
+  touchStartX.value = e.changedTouches[0].screenX
+}
+
+function handleTouchEnd(e: TouchEvent) {
+  touchEndX.value = e.changedTouches[0].screenX
+  handleSwipe()
+}
+
+function handleSwipe() {
+  const swipeDistance = touchStartX.value - touchEndX.value
+  const isNearRightEdge = window.innerWidth - touchStartX.value < EDGE_THRESHOLD
+  
+  // If swiping left from right edge and sidebar is hidden
+  if (swipeDistance > MIN_SWIPE_DISTANCE && isNearRightEdge && isSidebarHidden.value) {
+    toggleSidebar()
+  }
+}
+
+onMounted(() => {
+  if (isMobile.value) {
+    document.addEventListener('touchstart', handleTouchStart, false)
+    document.addEventListener('touchend', handleTouchEnd, false)
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('touchstart', handleTouchStart)
+  document.removeEventListener('touchend', handleTouchEnd)
+})
 </script>
 
 <template>
+  <!-- Overlay for closing sidebar when clicking outside -->
+  <transition name="fade">
+    <div 
+      v-if="isMobile && isExpanded" 
+      class="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm"
+      @click="toggleSidebar"
+    ></div>
+  </transition>
+
   <!-- Floating trigger button when sidebar is hidden on mobile -->
   <div v-if="isSidebarHidden" class="fixed top-3 right-3 z-50">
     <button 
@@ -187,6 +233,17 @@ function toggleSidebar() {
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   transform: translateX(30px);
+  opacity: 0;
+}
+
+/* Fade animation for overlay */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style> 
