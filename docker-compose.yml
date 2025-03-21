@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Frontend Vue.js application
+  frontend:
+    build:
+      context: ./packages/web/frontend
+      dockerfile: Dockerfile
+    container_name: chronosync-frontend
+    restart: unless-stopped
+    ports:
+      - "4173:80"
+    environment:
+      - VITE_API_URL=${API_URL:-http://localhost:3005/api}
+    depends_on:
+      - backend
+    labels:
+      coolify.enable: "true"
+      coolify.fqdn: "${FRONTEND_FQDN:-app.chronosync.local}"
+      coolify.healthCheckPath: "/"
+      coolify.healthCheckTimeout: "3s"
+      coolify.healthCheckInterval: "10s"
+
+  # Backend Express.js service
+  backend:
+    build:
+      context: ./packages/web/backend
+      dockerfile: Dockerfile
+    container_name: chronosync-backend
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3005
+      - JWT_SECRET=${JWT_SECRET:-replace_this_with_a_secure_random_string_in_production}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-30d}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-chronosync}
+      - DATABASE_URL=postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-chronosync}
+      - API_URL=${API_URL:-http://localhost:3005/api}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4173}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+    depends_on:
+      - db
+    labels:
+      coolify.enable: "true"
+      coolify.fqdn: "${API_FQDN:-api.chronosync.local}"
+      coolify.healthCheckPath: "/api/health"
+      coolify.healthCheckTimeout: "3s"
+      coolify.healthCheckInterval: "10s"
+
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: chronosync-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-chronosync}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    labels:
+      coolify.enable: "true"
+      coolify.fqdn: "${DB_FQDN:-db.chronosync.local}"
+
+  # pgAdmin (optional, for database management)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: chronosync-pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@chronosync.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    labels:
+      coolify.enable: "true"
+      coolify.fqdn: "${PGADMIN_FQDN:-pgadmin.chronosync.local}"
+
+volumes:
+  postgres_data:
+  pgadmin_data: 
