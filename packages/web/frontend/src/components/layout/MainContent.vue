@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useSidebar } from '@/components/ui/sidebar'
+import { useSidebar, SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from '@/components/ui/sidebar'
 
 const sidebar = useSidebar()
 const isExpanded = computed(() => sidebar.state.value === 'expanded')
+const isMobile = computed(() => sidebar.isMobile.value)
+
+// Compute left padding based on sidebar state
+const contentPadding = computed(() => {
+  if (isMobile.value) return '0'
+  return isExpanded.value ? 'var(--sidebar-width)' : 'var(--sidebar-width-icon)'
+})
 </script>
 
 <template>
-  <main :class="[
-    'transition-[padding] duration-300',
-    isExpanded ? 'pl-[240px]' : 'pl-[64px]'
-  ]">
+  <main
+    :style="{
+      '--sidebar-width': SIDEBAR_WIDTH,
+      '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+      paddingLeft: contentPadding
+    }"
+    class="transition-all duration-300"
+  >
     <div class="container mx-auto px-6 py-8">
       <slot />
     </div>

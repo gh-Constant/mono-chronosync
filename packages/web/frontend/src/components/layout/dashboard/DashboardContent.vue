@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useSidebar } from '@/components/ui/sidebar'
+import { useSidebar, SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from '@/components/ui/sidebar'
 
 const sidebar = useSidebar()
 const isExpanded = computed(() => sidebar.state.value === 'expanded')
+const isMobile = computed(() => sidebar.isMobile.value)
+
+// Compute left padding based on sidebar state - no padding on mobile
+const contentPadding = computed(() => {
+  if (isMobile.value) return '0' // No padding on mobile at all
+  return isExpanded.value ? 'var(--sidebar-width)' : 'var(--sidebar-width-icon)'
+})
 </script>
 
 <template>
-  <main :class="[
-    'min-h-screen transition-[padding] duration-300',
-    isExpanded ? 'pl-[240px]' : 'pl-[64px]'
-  ]">
+  <main
+    :style="{
+      '--sidebar-width': SIDEBAR_WIDTH,
+      '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+      paddingLeft: contentPadding
+    }"
+    class="min-h-screen transition-all duration-300"
+  >
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
       <div class="mx-auto max-w-6xl">
         <slot />

@@ -18,28 +18,40 @@ const emits = defineEmits<{
   'update:open': [open: boolean]
 }>()
 
-const isMobile = useMediaQuery('(max-width: 768px)')
-const openMobile = ref(false)
+// Detect mobile devices for responsive behavior
+const isMobile = useMediaQuery('(max-width: 767px)')
+
+// Read cookie value if exists
+function getSidebarStateFromCookie(): boolean | null {
+  const cookies = document.cookie.split(';')
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=')
+    if (name === SIDEBAR_COOKIE_NAME) {
+      return value === 'true'
+    }
+  }
+  return null
+}
+
+// Initialize with cookie value or default
+const initialState = getSidebarStateFromCookie()
+const defaultValue = initialState !== null ? initialState : props.defaultOpen ?? false
 
 const open = useVModel(props, 'open', emits, {
-  defaultValue: props.defaultOpen ?? false,
+  defaultValue,
   passive: (props.open === undefined) as false,
 }) as Ref<boolean>
 
 function setOpen(value: boolean) {
   open.value = value // emits('update:open', value)
 
-  // This sets the cookie to keep the sidebar state.
+  // This sets the cookie to keep the sidebar state
   document.cookie = `${SIDEBAR_COOKIE_NAME}=${open.value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
 }
 
-function setOpenMobile(value: boolean) {
-  openMobile.value = value
-}
-
-// Helper to toggle the sidebar.
+// Simple toggle function
 function toggleSidebar() {
-  return isMobile.value ? setOpenMobile(!openMobile.value) : setOpen(!open.value)
+  setOpen(!open.value)
 }
 
 useEventListener('keydown', (event: KeyboardEvent) => {
@@ -49,9 +61,14 @@ useEventListener('keydown', (event: KeyboardEvent) => {
   }
 })
 
-// We add a state so that we can do data-state="expanded" or "collapsed".
-// This makes it easier to style the sidebar with Tailwind classes.
+// This makes it easier to style the sidebar with Tailwind classes
 const state = computed(() => open.value ? 'expanded' : 'collapsed')
+
+// Mobile sidebar state (for compatibility)
+const openMobile = ref(false)
+function setOpenMobile(value: boolean) {
+  // No longer actively used, but kept for API compatibility
+}
 
 provideSidebarContext({
   state,
