@@ -30,13 +30,13 @@ RUN pnpm build:web:common && \
 
 # Install production dependencies in the dist folder for backend
 RUN cd dist/packages/web/backend/src && \
-    echo '{"name":"backend-src","version":"1.0.0","main":"index.js","type":"commonjs","dependencies":{"express":"^4.18.2","cors":"^2.8.5","helmet":"^7.1.0","passport":"^0.7.0","jsonwebtoken":"^9.0.2","express-rate-limit":"^7.1.5","csrf":"^3.1.0"}}' > package.json && \
+    echo '{"name":"backend-src","version":"1.0.0","main":"index.js","type":"commonjs","dependencies":{"express":"^4.18.2","cors":"^2.8.5","helmet":"^7.1.0","passport":"^0.7.0","jsonwebtoken":"^9.0.2","express-rate-limit":"^7.1.5","csrf":"^3.1.0","pg":"^8.11.3"}}' > package.json && \
     npm install --production && \
     ls -la && \
     ls -la node_modules
 
 # Fallback approach to ensure dependencies are available
-RUN npm install -g express cors helmet passport jsonwebtoken express-rate-limit csrf && \
+RUN npm install -g express cors helmet passport jsonwebtoken express-rate-limit csrf pg && \
     echo "Global dependencies installed:"  && \
     npm list -g --depth=0
 
