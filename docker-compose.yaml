@@ -17,18 +17,18 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     labels:
       - traefik.enable=true
       - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`)
       - traefik.http.routers.chronosync-frontend.entrypoints=http
       - traefik.http.services.chronosync-frontend.loadbalancer.server.port=80
       - coolify.managed=true
+      - coolify.healthcheck.path=/health
+      - coolify.healthcheck.port=80
+      - coolify.healthcheck.interval=10s
+      - coolify.healthcheck.timeout=5s
+      - coolify.healthcheck.retries=5
+      - coolify.healthcheck.start_period=30s
 
   # Backend Express.js service
   backend:
@@ -65,18 +65,18 @@ services:
     depends_on:
       postgres-chronosync:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3005/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
     labels:
       - traefik.enable=true
       - traefik.http.routers.chronosync-backend.rule=Host(`${API_FQDN:-api.chronosync.local}`)
       - traefik.http.routers.chronosync-backend.entrypoints=http
       - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
       - coolify.managed=true
+      - coolify.healthcheck.path=/api/health
+      - coolify.healthcheck.port=3005
+      - coolify.healthcheck.interval=10s
+      - coolify.healthcheck.timeout=5s
+      - coolify.healthcheck.retries=5
+      - coolify.healthcheck.start_period=120s
 
   # PostgreSQL Database - Simple setup
   postgres-chronosync:
@@ -91,14 +91,13 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-chronosync_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-chronosync_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     labels:
       - coolify.managed=true
+      - coolify.healthcheck.command=pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-chronosync_db}
+      - coolify.healthcheck.interval=10s
+      - coolify.healthcheck.timeout=5s
+      - coolify.healthcheck.retries=5
+      - coolify.healthcheck.start_period=10s
 
 volumes:
   postgres_data: 
