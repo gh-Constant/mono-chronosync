@@ -6,8 +6,17 @@ import axios from 'axios';
 const getRuntimeApiUrl = (): string => {
   // Check if runtime config is available (injected by Docker)
   if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG.API_URL) {
-    console.log('Using API URL from runtime config:', window.RUNTIME_CONFIG.API_URL);
-    return window.RUNTIME_CONFIG.API_URL;
+    const apiUrl = window.RUNTIME_CONFIG.API_URL;
+    
+    // If the API URL is relative (starts with '/'), prepend the current origin
+    if (apiUrl.startsWith('/') && typeof window !== 'undefined') {
+      const fullUrl = `${window.location.origin}${apiUrl}`;
+      console.log('Using relative API URL from runtime config:', fullUrl);
+      return fullUrl;
+    }
+    
+    console.log('Using API URL from runtime config:', apiUrl);
+    return apiUrl;
   }
   
   // Fallback to environment variable or default
