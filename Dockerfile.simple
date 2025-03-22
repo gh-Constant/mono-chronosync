@@ -34,8 +34,27 @@ RUN mkdir -p /nginx && \
     listen 80; \
     root /app/packages/web/frontend/dist; \
     index index.html; \
+    \
+    # Enable gzip compression \
+    gzip on; \
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript; \
+    \
+    # Add test endpoint \
+    location = /test { \
+        add_header Content-Type text/plain; \
+        return 200 "Frontend is running"; \
+    } \
+    \
+    # Handle SPA routing \
     location / { \
         try_files $uri $uri/ /index.html; \
+        add_header Cache-Control "no-cache, must-revalidate, max-age=0"; \
+    } \
+    \
+    # Cache static assets \
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { \
+        expires 30d; \
+        add_header Cache-Control "public, max-age=2592000"; \
     } \
 }' > /nginx/frontend.conf
 
@@ -46,26 +65,51 @@ RUN echo '#!/bin/sh' > /app/wait-for-postgres.sh && \
     echo 'port="$1"; shift' >> /app/wait-for-postgres.sh && \
     echo 'cmd="$@"' >> /app/wait-for-postgres.sh && \
     echo 'echo "Waiting for PostgreSQL at $host:$port..."' >> /app/wait-for-postgres.sh && \
+    echo 'max_attempts=30' >> /app/wait-for-postgres.sh && \
+    echo 'count=0' >> /app/wait-for-postgres.sh && \
     echo 'until nc -z "$host" "$port" > /dev/null 2>&1; do' >> /app/wait-for-postgres.sh && \
-    echo '  echo "Postgres is unavailable - sleeping"' >> /app/wait-for-postgres.sh && \
+    echo '  count=$((count + 1))' >> /app/wait-for-postgres.sh && \
+    echo '  if [ $count -ge $max_attempts ]; then' >> /app/wait-for-postgres.sh && \
+    echo '    echo "Error: PostgreSQL is still unavailable after $max_attempts attempts"' >> /app/wait-for-postgres.sh && \
+    echo '    echo "Last attempt details: Host=$host, Port=$port"' >> /app/wait-for-postgres.sh && \
+    echo '    echo "Proceeding anyway, but service may fail if database is required"' >> /app/wait-for-postgres.sh && \
+    echo '    break' >> /app/wait-for-postgres.sh && \
+    echo '  fi' >> /app/wait-for-postgres.sh && \
+    echo '  echo "PostgreSQL is unavailable at $host:$port - attempt $count/$max_attempts, sleeping 1s"' >> /app/wait-for-postgres.sh && \
     echo '  sleep 1' >> /app/wait-for-postgres.sh && \
     echo 'done' >> /app/wait-for-postgres.sh && \
-    echo 'echo "PostgreSQL is up - executing command"' >> /app/wait-for-postgres.sh && \
+    echo 'if [ $count -lt $max_attempts ]; then' >> /app/wait-for-postgres.sh && \
+    echo '  echo "PostgreSQL is up at $host:$port - executing command"' >> /app/wait-for-postgres.sh && \
+    echo 'fi' >> /app/wait-for-postgres.sh && \
     echo 'exec $cmd' >> /app/wait-for-postgres.sh && \
     chmod +x /app/wait-for-postgres.sh
 
 # Create startup script
 RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'set -e' >> /app/start.sh && \
+    echo 'echo "Starting service with SERVICE_TYPE=$SERVICE_TYPE"' >> /app/start.sh && \
     echo 'if [ "$SERVICE_TYPE" = "backend" ]; then' >> /app/start.sh && \
     echo '  echo "Starting backend service..."' >> /app/start.sh && \
     echo '  cd /app' >> /app/start.sh && \
-    echo '  echo "Environment: $NODE_ENV, Port: $PORT, DB Host: $DB_HOST"' >> /app/start.sh && \
-    echo '  /app/wait-for-postgres.sh $DB_HOST $DB_PORT NODE_OPTIONS="--max-old-space-size=512" node dist/packages/web/backend/index.js' >> /app/start.sh && \
+    echo '  echo "Environment: NODE_ENV=$NODE_ENV, PORT=$PORT, DB_HOST=$DB_HOST, DB_PORT=$DB_PORT"' >> /app/start.sh && \
+    echo '  echo "Checking database connection..."' >> /app/start.sh && \
+    echo '  /app/wait-for-postgres.sh $DB_HOST $DB_PORT echo "Database is ready"' >> /app/start.sh && \
+    echo '  echo "Starting backend server with memory limit of 512MB"' >> /app/start.sh && \
+    echo '  NODE_OPTIONS="--max-old-space-size=512" node dist/packages/web/backend/index.js || { echo "Backend failed to start: $?"; exit 1; }' >> /app/start.sh && \
     echo 'elif [ "$SERVICE_TYPE" = "frontend" ]; then' >> /app/start.sh && \
     echo '  echo "Starting frontend service..."' >> /app/start.sh && \
+    echo '  echo "Checking frontend static files..."' >> /app/start.sh && \
+    echo '  if [ ! -d "/app/packages/web/frontend/dist" ]; then' >> /app/start.sh && \
+    echo '    echo "ERROR: Frontend build directory does not exist"' >> /app/start.sh && \
+    echo '    exit 1' >> /app/start.sh && \
+    echo '  fi' >> /app/start.sh && \
+    echo '  ls -la /app/packages/web/frontend/dist || echo "Could not list frontend files"' >> /app/start.sh && \
+    echo '  echo "Starting nginx server..."' >> /app/start.sh && \
+    echo '  echo "nginx configuration:"' >> /app/start.sh && \
+    echo '  cat /nginx/frontend.conf' >> /app/start.sh && \
     echo '  nginx -c /nginx/frontend.conf -g "daemon off;"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '  echo "SERVICE_TYPE must be set to frontend or backend"' >> /app/start.sh && \
+    echo '  echo "ERROR: SERVICE_TYPE must be set to frontend or backend"' >> /app/start.sh && \
     echo '  exit 1' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     chmod +x /app/start.sh

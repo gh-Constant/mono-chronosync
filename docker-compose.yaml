@@ -19,7 +19,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`)
-      - traefik.http.routers.chronosync-frontend.entrypoints=http
+      - traefik.http.routers.chronosync-frontend.entrypoints=web
       - traefik.http.services.chronosync-frontend.loadbalancer.server.port=80
       - coolify.managed=true
 
@@ -60,7 +60,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.chronosync-backend.rule=Host(`${API_FQDN:-api.chronosync.local}`)
-      - traefik.http.routers.chronosync-backend.entrypoints=http
+      - traefik.http.routers.chronosync-backend.entrypoints=web
       - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
       - coolify.managed=true
 
