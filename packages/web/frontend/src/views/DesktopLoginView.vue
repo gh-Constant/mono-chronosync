@@ -319,12 +319,20 @@ const handleOAuthLogin = (provider: 'google' | 'github' | 'apple') => {
     return
   }
   
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3005/api'
+  // Get API URL from runtime config or fallback
+  let apiUrl = 'http://localhost:3005/api'
+  
+  if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG.API_URL) {
+    apiUrl = window.RUNTIME_CONFIG.API_URL
+    console.log('DesktopLoginView: Using API URL from runtime config:', apiUrl)
+  } else if (import.meta.env.VITE_API_URL) {
+    apiUrl = import.meta.env.VITE_API_URL
+    console.log('DesktopLoginView: Using API URL from environment:', apiUrl)
+  }
+  
   // Include the redirect_uri parameter in the OAuth request
   window.location.href = `${apiUrl}/auth/${provider}?redirect_uri=${encodeURIComponent(redirectUri.value)}`
 }
-
-
 
 </script>
 
