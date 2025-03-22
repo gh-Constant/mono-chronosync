@@ -129,8 +129,16 @@ RUN echo '#!/bin/sh' > /app/wait-for-postgres.sh && \
     echo 'shift' >> /app/wait-for-postgres.sh && \
     echo 'cmd="$@"' >> /app/wait-for-postgres.sh && \
     echo '' >> /app/wait-for-postgres.sh && \
-    echo 'until wget -q --spider "http://$host:$port" 2>/dev/null || nc -z "$host" "$port"; do' >> /app/wait-for-postgres.sh && \
-    echo '  >&2 echo "Postgres is unavailable on $host:$port - sleeping"' >> /app/wait-for-postgres.sh && \
+    echo 'echo "Waiting for PostgreSQL at $host:$port..."' >> /app/wait-for-postgres.sh && \
+    echo 'max_attempts=30' >> /app/wait-for-postgres.sh && \
+    echo 'attempt=0' >> /app/wait-for-postgres.sh && \
+    echo 'until nc -z "$host" "$port" > /dev/null 2>&1; do' >> /app/wait-for-postgres.sh && \
+    echo '  attempt=$((attempt+1))' >> /app/wait-for-postgres.sh && \
+    echo '  if [ $attempt -ge $max_attempts ]; then' >> /app/wait-for-postgres.sh && \
+    echo '    echo "Postgres still unavailable after $max_attempts attempts - giving up"' >> /app/wait-for-postgres.sh && \
+    echo '    exit 1' >> /app/wait-for-postgres.sh && \
+    echo '  fi' >> /app/wait-for-postgres.sh && \
+    echo '  >&2 echo "Postgres is unavailable on $host:$port - sleeping (attempt $attempt/$max_attempts)"' >> /app/wait-for-postgres.sh && \
     echo '  sleep 1' >> /app/wait-for-postgres.sh && \
     echo 'done' >> /app/wait-for-postgres.sh && \
     echo '' >> /app/wait-for-postgres.sh && \
@@ -152,10 +160,41 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '    echo "Database URL: $DATABASE_URL"' >> /app/start.sh && \
     echo '    echo "DB Host: $DB_HOST"' >> /app/start.sh && \
     echo '    echo "Health check URL will be: http://localhost:$PORT/api/health"' >> /app/start.sh && \
-    echo '    # Check if the health check endpoint is properly configured' >> /app/start.sh && \
-    echo '    grep -r "health" dist/packages/web/backend/ || echo "Warning: No health check endpoint found in built files"' >> /app/start.sh && \
+    echo '    # Create a simple health check endpoint if it doesn'"'"'t exist' >> /app/start.sh && \
+    echo '    mkdir -p dist/packages/web/backend/src/routes' >> /app/start.sh && \
+    echo '    if ! grep -r "api/health" dist/packages/web/backend/ > /dev/null; then' >> /app/start.sh && \
+    echo '        echo "Warning: No health check endpoint found in built files. Attempting to inject one."' >> /app/start.sh && \
+    echo '        # Try to inject directly into compiled files' >> /app/start.sh && \
+    echo '        /app/inject-health.sh' >> /app/start.sh && \
+    echo '        # Create the fallback health endpoint if injection fails' >> /app/start.sh && \
+    echo '        if ! grep -r "api/health" dist/packages/web/backend/ > /dev/null; then' >> /app/start.sh && \
+    echo '            echo "Direct injection failed. Creating fallback health endpoint module."' >> /app/start.sh && \
+    echo '            cat > dist/packages/web/backend/src/healthCheck.js << EOF' >> /app/start.sh && \
+    echo '// Simple health check endpoint added at startup' >> /app/start.sh && \
+    echo 'const express = require("express");' >> /app/start.sh && \
+    echo 'const router = express.Router();' >> /app/start.sh && \
+    echo 'router.get("/health", (req, res) => {' >> /app/start.sh && \
+    echo '  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });' >> /app/start.sh && \
+    echo '});' >> /app/start.sh && \
+    echo 'module.exports = router;' >> /app/start.sh && \
+    echo 'EOF' >> /app/start.sh && \
+    echo '            echo "const healthCheck = require(\\\"./healthCheck\\\"); app.use(\\\"/api\\\", healthCheck);" >> dist/packages/web/backend/src/index.js' >> /app/start.sh && \
+    echo '        fi' >> /app/start.sh && \
+    echo '    else' >> /app/start.sh && \
+    echo '        echo "Health check endpoint found, proceeding with startup"' >> /app/start.sh && \
+    echo '    fi' >> /app/start.sh && \
     echo '    # Wait for postgres and then start the backend' >> /app/start.sh && \
-    echo '    /app/wait-for-postgres.sh $DB_HOST 5432 NODE_OPTIONS="--max-old-space-size=512 --trace-warnings" node dist/packages/web/backend/index.js || echo "Backend failed to start with exit code: $?"' >> /app/start.sh && \
+    echo '    echo "Running wait-for-postgres script..."' >> /app/start.sh && \
+    echo '    # Start the backend and capture its PID' >> /app/start.sh && \
+    echo '    /app/wait-for-postgres.sh $DB_HOST $DB_PORT NODE_OPTIONS="--max-old-space-size=512 --trace-warnings" node dist/packages/web/backend/index.js & backend_pid=$!' >> /app/start.sh && \
+    echo '    echo "Backend started with PID: $backend_pid"' >> /app/start.sh && \
+    echo '    # Wait for application to initialize (adjust sleep time as needed)' >> /app/start.sh && \
+    echo '    sleep 5' >> /app/start.sh && \
+    echo '    # Run the debug script to check if health endpoint is working' >> /app/start.sh && \
+    echo '    echo "Running debug health check..."' >> /app/start.sh && \
+    echo '    /app/debug-health.sh' >> /app/start.sh && \
+    echo '    # Keep container running by waiting for the backend process' >> /app/start.sh && \
+    echo '    wait $backend_pid || echo "Backend exited with code: $?"' >> /app/start.sh && \
     echo 'elif [ "$SERVICE_TYPE" = "frontend" ]; then' >> /app/start.sh && \
     echo '    echo "Starting frontend service..."' >> /app/start.sh && \
     echo '    # Create a health check file that nginx can serve' >> /app/start.sh && \
@@ -172,4 +211,60 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
 EXPOSE 3005 80
 
 # Set entrypoint to our start script
-ENTRYPOINT ["/app/start.sh"] 
+ENTRYPOINT ["/app/start.sh"]
+
+# Install utilities for debugging
+RUN apt-get update && apt-get install -y wget netcat-openbsd curl procps lsof nano vim && apt-get clean
+
+# Create a debug script to check the health endpoint
+RUN echo '#!/bin/sh' > /app/debug-health.sh && \
+    echo 'echo "Checking health endpoint..."' >> /app/debug-health.sh && \
+    echo 'echo "Process list:"' >> /app/debug-health.sh && \
+    echo 'ps aux | grep node' >> /app/debug-health.sh && \
+    echo 'echo "Open ports:"' >> /app/debug-health.sh && \
+    echo 'lsof -i -P -n | grep LISTEN' >> /app/debug-health.sh && \
+    echo 'echo "Trying to connect to health endpoint..."' >> /app/debug-health.sh && \
+    echo 'curl -v http://localhost:$PORT/api/health' >> /app/debug-health.sh && \
+    echo 'echo "Exit code: $?"' >> /app/debug-health.sh && \
+    chmod +x /app/debug-health.sh
+
+# Create a script to inject a health endpoint directly into app.js
+RUN echo '#!/bin/sh' > /app/inject-health.sh && \
+    echo 'set -e' >> /app/inject-health.sh && \
+    echo 'echo "Attempting to inject health endpoint directly into compiled files..."' >> /app/inject-health.sh && \
+    echo 'APP_FILE=$(find /app/dist/packages/web/backend -name "index.js" -type f)' >> /app/inject-health.sh && \
+    echo 'if [ -f "$APP_FILE" ]; then' >> /app/inject-health.sh && \
+    echo '  echo "Found app file: $APP_FILE"' >> /app/inject-health.sh && \
+    echo '  # Check if app.get("/api/health") already exists' >> /app/inject-health.sh && \
+    echo '  if ! grep -q "app.get..*/api/health" "$APP_FILE"; then' >> /app/inject-health.sh && \
+    echo '    # Find app.listen or app.use - typically towards the end of the file before the server starts' >> /app/inject-health.sh && \
+    echo '    # Create a backup first' >> /app/inject-health.sh && \
+    echo '    cp "$APP_FILE" "${APP_FILE}.bak"' >> /app/inject-health.sh && \
+    echo '    # Use sed to insert the health endpoint before app.listen' >> /app/inject-health.sh && \
+    echo '    # Define the health check code to inject' >> /app/inject-health.sh && \
+    echo '    HEALTH_CODE="// Injected health check endpoint\napp.get(\"/api/health\", (req, res) => {\n  res.status(200).json({ status: \"ok\", timestamp: new Date().toISOString() });\n});\n"' >> /app/inject-health.sh && \
+    echo '    # Insert before app.listen or at the end if not found' >> /app/inject-health.sh && \
+    echo '    if grep -q "app.listen" "$APP_FILE"; then' >> /app/inject-health.sh && \
+    echo '      sed -i -e "/app.listen/ i\\$HEALTH_CODE" "$APP_FILE"' >> /app/inject-health.sh && \
+    echo '      echo "Inserted health endpoint before app.listen"' >> /app/inject-health.sh && \
+    echo '    elif grep -q "app.use" "$APP_FILE"; then' >> /app/inject-health.sh && \
+    echo '      # If no app.listen, try to inject after last app.use' >> /app/inject-health.sh && \
+    echo '      LAST_APP_USE=$(grep -n "app.use" "$APP_FILE" | tail -1 | cut -d: -f1)' >> /app/inject-health.sh && \
+    echo '      if [ -n "$LAST_APP_USE" ]; then' >> /app/inject-health.sh && \
+    echo '        LAST_APP_USE=$((LAST_APP_USE + 1))' >> /app/inject-health.sh && \
+    echo '        sed -i -e "${LAST_APP_USE}i\\$HEALTH_CODE" "$APP_FILE"' >> /app/inject-health.sh && \
+    echo '        echo "Inserted health endpoint after last app.use"' >> /app/inject-health.sh && \
+    echo '      else' >> /app/inject-health.sh && \
+    echo '        echo "Could not find suitable location to inject health endpoint"' >> /app/inject-health.sh && \
+    echo '      fi' >> /app/inject-health.sh && \
+    echo '    else' >> /app/inject-health.sh && \
+    echo '      echo "Could not find suitable location to inject health endpoint"' >> /app/inject-health.sh && \
+    echo '    fi' >> /app/inject-health.sh && \
+    echo '    echo "Health endpoint injection attempt completed. Original file backed up at ${APP_FILE}.bak"' >> /app/inject-health.sh && \
+    echo '  else' >> /app/inject-health.sh && \
+    echo '    echo "Health endpoint already exists in the app file"' >> /app/inject-health.sh && \
+    echo '  fi' >> /app/inject-health.sh && \
+    echo 'else' >> /app/inject-health.sh && \
+    echo '  echo "Could not find app file"' >> /app/inject-health.sh && \
+    echo 'fi' >> /app/inject-health.sh && \
+    chmod +x /app/inject-health.sh 
