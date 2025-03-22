@@ -46,15 +46,7 @@ const API_URL = getRuntimeApiUrl();
 axios.defaults.withCredentials = true;  // Important for CORS with credentials
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
-// Add global declaration for runtime config
-declare global {
-  interface Window {
-    RUNTIME_CONFIG?: {
-      API_URL: string;
-      ENV: string;
-    };
-  }
-}
+// Global declaration is already in types/global.d.ts
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
