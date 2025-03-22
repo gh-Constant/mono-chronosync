@@ -150,6 +150,17 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '    exit 1' >> /app/start.sh && \
     echo '  fi' >> /app/start.sh && \
     echo '  ls -la /app/packages/web/frontend/dist || echo "Could not list frontend files"' >> /app/start.sh && \
+    echo '  # Generate runtime env config file with dynamic environment variables' >> /app/start.sh && \
+    echo '  echo "Generating runtime environment config..."' >> /app/start.sh && \
+    echo '  mkdir -p /app/packages/web/frontend/dist/config' >> /app/start.sh && \
+    echo '  echo "window.RUNTIME_CONFIG = {" > /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
+    echo '  echo "  API_URL: \"${VITE_API_URL:-http://chronosync-backend:3005/api}\"," >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
+    echo '  echo "  ENV: \"${NODE_ENV:-production}\"" >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
+    echo '  echo "};" >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
+    echo '  echo "Runtime environment config created:"' >> /app/start.sh && \
+    echo '  cat /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
+    echo '  # Inject script tag into index.html' >> /app/start.sh && \
+    echo '  sed -i '"'"'s|</head>|<script src="/config/runtime-env.js"></script></head>|'"'"' /app/packages/web/frontend/dist/index.html' >> /app/start.sh && \
     echo '  echo "Starting nginx server..."' >> /app/start.sh && \
     echo '  echo "Nginx configuration content:"' >> /app/start.sh && \
     echo '  cat /nginx/frontend.conf' >> /app/start.sh && \
