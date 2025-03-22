@@ -324,7 +324,14 @@ const handleOAuthLogin = (provider: 'google' | 'github' | 'apple') => {
   
   if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG.API_URL) {
     apiUrl = window.RUNTIME_CONFIG.API_URL
-    console.log('DesktopLoginView: Using API URL from runtime config:', apiUrl)
+    
+    // If the API URL is relative (starts with '/'), prepend the current origin
+    if (apiUrl.startsWith('/') && typeof window !== 'undefined') {
+      apiUrl = `${window.location.origin}${apiUrl}`
+      console.log('DesktopLoginView: Using relative API URL from runtime config:', apiUrl)
+    } else {
+      console.log('DesktopLoginView: Using API URL from runtime config:', apiUrl)
+    }
   } else if (import.meta.env.VITE_API_URL) {
     apiUrl = import.meta.env.VITE_API_URL
     console.log('DesktopLoginView: Using API URL from environment:', apiUrl)

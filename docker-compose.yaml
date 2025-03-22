@@ -18,7 +18,7 @@ services:
       - backend
     labels:
       - traefik.enable=true
-      - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`)
+      - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`) && PathPrefix(`/api`)
       - traefik.http.routers.chronosync-frontend.entrypoints=web
       - traefik.http.services.chronosync-frontend.loadbalancer.server.port=80
       - traefik.http.routers.chronosync-frontend-api.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`) && PathPrefix(`/api`)
