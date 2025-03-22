@@ -21,6 +21,10 @@ services:
       - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`)
       - traefik.http.routers.chronosync-frontend.entrypoints=web
       - traefik.http.services.chronosync-frontend.loadbalancer.server.port=80
+      - traefik.http.routers.chronosync-frontend-api.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`) && PathPrefix(`/api`)
+      - traefik.http.routers.chronosync-frontend-api.entrypoints=web
+      - traefik.http.routers.chronosync-frontend-api.service=chronosync-backend
+      - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
       - coolify.managed=true
 
   # Backend Express.js service
