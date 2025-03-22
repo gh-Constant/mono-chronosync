@@ -12,9 +12,39 @@ const isBackendError = ref(false)
 // Check backend connectivity
 onMounted(async () => {
   try {
+    console.log('Window runtime config:', window.RUNTIME_CONFIG);
+    
     // Try to connect to the backend API
-    const apiUrl = window.RUNTIME_CONFIG?.API_URL || '/api'
-    const fullUrl = apiUrl.startsWith('/') ? `${window.location.origin}${apiUrl}` : apiUrl
+    const apiUrl = window.RUNTIME_CONFIG?.API_URL || '/api';
+    console.log('Initial apiUrl:', apiUrl);
+    
+    // If the API URL is relative (starts with '/'), prepend the current origin
+    const fullUrl = apiUrl.startsWith('/') 
+      ? `${window.location.origin}${apiUrl}` 
+      : apiUrl;
+    
+    console.log('Using fullUrl for API connection:', fullUrl);
+    
+    // Force a relative URL if we detect localhost
+    if (fullUrl.includes('localhost') && window.location.hostname !== 'localhost') {
+      const relativeUrl = `${window.location.origin}/api`;
+      console.log('Detected localhost in non-localhost environment, using relative instead:', relativeUrl);
+      
+      // Try with relative URL instead
+      const response = await fetch(`${relativeUrl}/test?_=${Date.now()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(5000)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Backend returned status ${response.status}`);
+      }
+      
+      isBackendError.value = false;
+      console.log('Backend connection successful with relative URL');
+      return;
+    }
     
     // Add a random query param to prevent caching
     const response = await fetch(`${fullUrl}/test?_=${Date.now()}`, {
@@ -22,19 +52,39 @@ onMounted(async () => {
       headers: { 'Accept': 'application/json' },
       // Short timeout to prevent long waiting
       signal: AbortSignal.timeout(5000)
-    })
+    });
     
     if (!response.ok) {
-      throw new Error(`Backend returned status ${response.status}`)
+      throw new Error(`Backend returned status ${response.status}`);
     }
     
-    isBackendError.value = false
-    console.log('Backend connection successful')
+    isBackendError.value = false;
+    console.log('Backend connection successful');
   } catch (error) {
-    console.error('Backend connection failed:', error)
-    isBackendError.value = true
+    console.error('Backend connection failed:', error);
+    isBackendError.value = true;
+    
+    // Try with a fallback if our initial attempt failed
+    try {
+      console.log('Trying fallback to relative API URL...');
+      const fallbackUrl = `${window.location.origin}/api`;
+      
+      const response = await fetch(`${fallbackUrl}/test?_=${Date.now()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(5000)
+      });
+      
+      if (response.ok) {
+        console.log('Fallback connection successful!');
+        isBackendError.value = false;
+      }
+    } catch (fallbackError) {
+      console.error('Fallback connection also failed:', fallbackError);
+      // Keep error state as true
+    }
   }
-})
+});
 
 onMounted(() => {
   themeStore.initializeTheme()
