@@ -4,8 +4,9 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@10.6.1 typescript
+# Install pnpm and required tools
+RUN npm install -g pnpm@10.6.1 typescript && \
+    apk add --no-cache wget nginx
 
 # Copy package files
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -24,6 +25,14 @@ RUN echo "Node version:" && node --version && \
 RUN echo "Installing dependencies..." && \
     pnpm install --no-frozen-lockfile
 
+# Add health check endpoint to backend
+RUN echo "Adding health check endpoint to backend..." && \
+    if grep -q "'/api/health'" packages/web/backend/src/index.ts; then \
+        echo "Health check endpoint already exists"; \
+    else \
+        echo "app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() }));" >> packages/web/backend/src/index.ts; \
+    fi
+
 # Build common package directly with tsc
 RUN echo "Building common package with TypeScript directly..." && \
     cd packages/web/common && \
@@ -34,44 +43,55 @@ RUN echo "Building backend with TypeScript directly..." && \
     cd packages/web/backend && \
     npx tsc || (echo "Backend build failed with error code $?" && exit 1)
 
+# Add health check page to frontend
+RUN echo "Adding health check page to frontend..." && \
+    mkdir -p packages/web/frontend/public && \
+    echo '<!DOCTYPE html><html><head><title>Health Check</title></head><body><h1>OK</h1><p>Frontend is healthy</p><script>document.body.appendChild(document.createTextNode("Timestamp: " + new Date().toISOString()))</script></body></html>' > packages/web/frontend/public/health.html
+
 # Build frontend (assuming it uses Vite)
 RUN echo "Building frontend..." && \
     cd packages/web/frontend && \
     npx vite build || (echo "Frontend build failed with error code $?" && exit 1)
 
-# Create nginx configuration for frontend
+# Create nginx configuration for frontend with health check
 RUN mkdir -p /nginx
 RUN echo 'server { \
     listen 80; \
     root /app/packages/web/frontend/dist; \
     index index.html; \
+    # Health check endpoint \
+    location = /health { \
+        access_log off; \
+        add_header Content-Type text/plain; \
+        return 200 "ok"; \
+    } \
+    # Regular application routes \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
 }' > /nginx/frontend.conf
 
-# Install nginx for frontend
-RUN apk add --update nginx
-
 # Create startup script
-RUN echo '#!/bin/sh \n\
-if [ "$SERVICE_TYPE" = "backend" ]; then \
-    echo "Starting backend service..." \
-    cd /app/packages/web/backend && \
-    node dist/index.js \
-elif [ "$SERVICE_TYPE" = "frontend" ]; then \
-    echo "Starting frontend service..." \
-    nginx -c /nginx/frontend.conf -g "daemon off;" \
-else \
-    echo "SERVICE_TYPE environment variable must be set to either 'frontend' or 'backend'" \
-    exit 1 \
-fi' > /app/start.sh && chmod +x /app/start.sh
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'if [ "$SERVICE_TYPE" = "backend" ]; then' >> /app/start.sh && \
+    echo '    echo "Starting backend service..."' >> /app/start.sh && \
+    echo '    cd /app/packages/web/backend' >> /app/start.sh && \
+    echo '    echo "Environment: $NODE_ENV"' >> /app/start.sh && \
+    echo '    echo "Port: $PORT"' >> /app/start.sh && \
+    echo '    node dist/index.js' >> /app/start.sh && \
+    echo 'elif [ "$SERVICE_TYPE" = "frontend" ]; then' >> /app/start.sh && \
+    echo '    echo "Starting frontend service..."' >> /app/start.sh && \
+    echo '    # Create a health check file that nginx can serve' >> /app/start.sh && \
+    echo '    echo "OK" > /app/packages/web/frontend/dist/health' >> /app/start.sh && \
+    echo '    nginx -c /nginx/frontend.conf -g "daemon off;"' >> /app/start.sh && \
+    echo 'else' >> /app/start.sh && \
+    echo '    echo "SERVICE_TYPE environment variable must be set to either frontend or backend"' >> /app/start.sh && \
+    echo '    exit 1' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
+    chmod +x /app/start.sh
 
 # Expose ports
 EXPOSE 3005 80
-
-# Health check addition for backend
-RUN echo 'app.get("/api/health", (req, res) => res.status(200).send("OK"));' >> /app/packages/web/backend/src/index.ts
 
 # Set entrypoint
 ENTRYPOINT ["/app/start.sh"] 

@@ -11,6 +11,9 @@ ENV DEBUG=nx*
 RUN echo "=== [1] Installing pnpm and nx ===" && \
     npm install -g pnpm@10.6.1 nx
 
+# Install wget for health checks
+RUN apk add --no-cache wget nginx
+
 # Set working directory
 WORKDIR /app
 
@@ -66,6 +69,15 @@ RUN echo "=== [9] Building common package ===" && \
 RUN echo "=== [10] Verifying common package build outputs ===" && \
     ls -la packages/web/common/dist || echo "No dist folder found for common package!"
 
+# Add health check endpoint to backend
+RUN echo "=== Adding health check endpoint to backend ===" && \
+    if grep -q "'/api/health'" packages/web/backend/src/index.ts; then \
+        echo "Health check endpoint already exists"; \
+    else \
+        echo "Adding health check endpoint to backend"; \
+        echo "app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() }));" >> packages/web/backend/src/index.ts; \
+    fi
+
 # Build backend with detailed logging
 RUN echo "=== [11] Building backend package ===" && \
     (NX_VERBOSE_LOGGING=true DEBUG=nx* pnpm build:web:backend || \
@@ -79,6 +91,11 @@ RUN echo "=== [11] Building backend package ===" && \
 # Check if backend was built successfully
 RUN echo "=== [12] Verifying backend build outputs ===" && \
     ls -la dist/packages/web/backend || echo "No dist folder found for backend package!"
+
+# Add health check page to frontend
+RUN echo "=== Adding health check page to frontend ===" && \
+    mkdir -p packages/web/frontend/public && \
+    echo '<!DOCTYPE html><html><head><title>Health Check</title></head><body><h1>OK</h1><p>Frontend is healthy</p><script>document.body.appendChild(document.createTextNode("Timestamp: " + new Date().toISOString()))</script></body></html>' > packages/web/frontend/public/health.html
 
 # Build frontend with detailed logging
 RUN echo "=== [13] Building frontend package ===" && \
@@ -94,29 +111,45 @@ RUN echo "=== [13] Building frontend package ===" && \
 RUN echo "=== [14] Verifying frontend build outputs ===" && \
     ls -la packages/web/frontend/dist || echo "No dist folder found for frontend package!"
 
-# Create frontend-specific nginx configuration
+# Create frontend-specific nginx configuration with health check path
 RUN mkdir -p /nginx
 RUN echo 'server { \
     listen 80; \
     root /app/packages/web/frontend/dist; \
     index index.html; \
+    # Health check endpoint \
+    location = /health { \
+        access_log off; \
+        add_header Content-Type text/plain; \
+        return 200 "ok"; \
+    } \
+    # Regular application routes \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
 }' > /nginx/frontend.conf
 
-# Create startup script to run both services
-RUN echo '#!/bin/sh \n\
-if [ "$SERVICE_TYPE" = "backend" ]; then \
-    echo "Starting backend service..." \
-    node dist/packages/web/backend/index.js \
-elif [ "$SERVICE_TYPE" = "frontend" ]; then \
-    echo "Starting frontend service..." \
-    nginx -c /nginx/frontend.conf -g "daemon off;" \
-else \
-    echo "SERVICE_TYPE environment variable must be set to either 'frontend' or 'backend'" \
-    exit 1 \
-fi' > /app/start.sh && chmod +x /app/start.sh
+# Create startup script to run both services with proper health checks
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'if [ "$SERVICE_TYPE" = "backend" ]; then' >> /app/start.sh && \
+    echo '    echo "Starting backend service..."' >> /app/start.sh && \
+    echo '    cd /app' >> /app/start.sh && \
+    echo '    # Add environment check and setup' >> /app/start.sh && \
+    echo '    echo "Environment: $NODE_ENV"' >> /app/start.sh && \
+    echo '    echo "Port: $PORT"' >> /app/start.sh && \
+    echo '    # Start the backend with health check endpoint' >> /app/start.sh && \
+    echo '    node dist/packages/web/backend/index.js' >> /app/start.sh && \
+    echo 'elif [ "$SERVICE_TYPE" = "frontend" ]; then' >> /app/start.sh && \
+    echo '    echo "Starting frontend service..."' >> /app/start.sh && \
+    echo '    # Create a health check file that nginx can serve' >> /app/start.sh && \
+    echo '    echo "OK" > /app/packages/web/frontend/dist/health' >> /app/start.sh && \
+    echo '    # Start nginx with our custom config' >> /app/start.sh && \
+    echo '    nginx -c /nginx/frontend.conf -g "daemon off;"' >> /app/start.sh && \
+    echo 'else' >> /app/start.sh && \
+    echo '    echo "SERVICE_TYPE environment variable must be set to either frontend or backend"' >> /app/start.sh && \
+    echo '    exit 1' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
+    chmod +x /app/start.sh
 
 # Expose ports for both services
 EXPOSE 3005 80
