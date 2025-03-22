@@ -22,19 +22,6 @@ services:
       - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`)
       - traefik.http.routers.chronosync-frontend.entrypoints=web
       - traefik.http.services.chronosync-frontend.loadbalancer.server.port=80
-      # API path routing
-      - traefik.http.routers.chronosync-frontend-api.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`) && PathPrefix(`/api`)
-      - traefik.http.routers.chronosync-frontend-api.entrypoints=web
-      - traefik.http.routers.chronosync-frontend-api.service=chronosync-backend
-      - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
-      # Enable CORS preflight requests handling
-      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowMethods=GET,OPTIONS,PUT,POST,DELETE,PATCH
-      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowOriginList=*
-      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowCredentials=true
-      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowHeaders=*
-      - traefik.http.middlewares.cors-preflight.headers.accessControlMaxAge=86400
-      - traefik.http.routers.chronosync-frontend-api.middlewares=cors-preflight
-      - coolify.managed=true
 
   # Backend Express.js service
   backend:
@@ -49,6 +36,7 @@ services:
       - SERVICE_TYPE=backend
       - SERVICE_FQDN_API
       - NODE_ENV=${NODE_ENV:-development}
+      - ALLOW_ALL_ORIGINS=true
       - PORT=3005
       - JWT_SECRET=${JWT_SECRET:-replace_this_with_a_secure_random_string_in_production}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-30d}
@@ -75,6 +63,15 @@ services:
       - traefik.http.routers.chronosync-backend.rule=Host(`${API_FQDN:-api.chronosync.local}`)
       - traefik.http.routers.chronosync-backend.entrypoints=web
       - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
+      - traefik.http.routers.chronosync-api.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`) && PathPrefix(`/api`)
+      - traefik.http.routers.chronosync-api.entrypoints=web
+      - traefik.http.services.chronosync-api.loadbalancer.server.port=3005
+      - traefik.http.middlewares.cors-headers.headers.accessControlAllowMethods=GET,OPTIONS,PUT,POST,DELETE,PATCH
+      - traefik.http.middlewares.cors-headers.headers.accessControlAllowOriginList=*
+      - traefik.http.middlewares.cors-headers.headers.accessControlAllowCredentials=true
+      - traefik.http.middlewares.cors-headers.headers.accessControlAllowHeaders=Content-Type,Authorization,Origin,X-Requested-With
+      - traefik.http.middlewares.cors-headers.headers.accessControlMaxAge=86400
+      - traefik.http.routers.chronosync-api.middlewares=cors-headers
       - coolify.managed=true
 
   # PostgreSQL Database - Simple setup
