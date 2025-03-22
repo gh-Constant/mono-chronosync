@@ -60,8 +60,29 @@ axios.interceptors.request.use((config) => {
     config.url = `${window.location.origin}/api/${relativePath}`;
     console.log('Interceptor: Fixed localhost URL to:', config.url);
   }
+  
+  console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`);
   return config;
 });
+
+// Add more detailed error handling
+axios.interceptors.response.use(
+  (response) => {
+    console.log(`Response from ${response.config.url}: Status ${response.status}`);
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method?.toUpperCase(),
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      headers: error.response?.headers,
+      data: error.response?.data
+    });
+    return Promise.reject(error);
+  }
+);
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
