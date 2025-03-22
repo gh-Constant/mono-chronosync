@@ -8,6 +8,13 @@ const getRuntimeApiUrl = (): string => {
   if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG.API_URL) {
     const apiUrl = window.RUNTIME_CONFIG.API_URL;
     
+    // If we're not on localhost but API URL contains localhost, use relative URL instead
+    if (apiUrl.includes('localhost') && typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      const relativeUrl = `${window.location.origin}/api`;
+      console.log('Detected localhost in non-localhost environment, using relative URL instead:', relativeUrl);
+      return relativeUrl;
+    }
+    
     // If the API URL is relative (starts with '/'), prepend the current origin
     if (apiUrl.startsWith('/') && typeof window !== 'undefined') {
       const fullUrl = `${window.location.origin}${apiUrl}`;
@@ -20,7 +27,15 @@ const getRuntimeApiUrl = (): string => {
   }
   
   // Fallback to environment variable or default
-  const envApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3005/api';
+  const envApiUrl = import.meta.env.VITE_API_URL || '/api';
+  
+  // Always use relative URL in production
+  if (typeof window !== 'undefined' && (import.meta.env.PROD || import.meta.env.MODE === 'production')) {
+    const relativeUrl = `${window.location.origin}/api`;
+    console.log('Using relative API URL in production environment:', relativeUrl);
+    return relativeUrl;
+  }
+  
   console.log('Using API URL from environment:', envApiUrl);
   return envApiUrl;
 };
