@@ -41,17 +41,36 @@ const passport_1 = __importDefault(require("passport"));
 const authController = __importStar(require("../controllers/authController"));
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const authValidators_1 = require("../validators/authValidators");
+const express_rate_limit_1 = require("express-rate-limit");
 const router = (0, express_1.Router)();
+// Create an auth-specific rate limiter for sensitive routes (if not provided by app.locals)
+const authLimiter = (0, express_rate_limit_1.rateLimit)({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    limit: 10, // 10 attempts per hour
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: 'Too many authentication attempts, please try again later',
+});
+// Apply auth limiter to sensitive routes
+const applyAuthLimiter = (req, res, next) => {
+    // Use app-wide limiter if available, otherwise use local one
+    const limiter = req.app.locals.authLimiter || authLimiter;
+    return limiter(req, res, next);
+};
 // Register a new user
-router.post('/register', (0, authValidators_1.validate)(authValidators_1.registerSchema), authController.register);
+router.post('/register', applyAuthLimiter, // Apply rate limiting
+(0, authValidators_1.validate)(authValidators_1.registerSchema), authController.register);
 // Login user
-router.post('/login', (0, authValidators_1.validate)(authValidators_1.loginSchema), authController.login);
+router.post('/login', applyAuthLimiter, // Apply rate limiting
+(0, authValidators_1.validate)(authValidators_1.loginSchema), authController.login);
 // Get current user profile
 router.get('/profile', authMiddleware_1.authenticate, authController.getProfile);
 // Password reset request
-router.post('/password-reset/request', (0, authValidators_1.validate)(authValidators_1.passwordResetRequestSchema), authController.requestPasswordReset);
+router.post('/password-reset/request', applyAuthLimiter, // Apply rate limiting
+(0, authValidators_1.validate)(authValidators_1.passwordResetRequestSchema), authController.requestPasswordReset);
 // Password reset confirmation
-router.post('/password-reset/confirm', (0, authValidators_1.validate)(authValidators_1.passwordResetConfirmSchema), authController.confirmPasswordReset);
+router.post('/password-reset/confirm', applyAuthLimiter, // Apply rate limiting
+(0, authValidators_1.validate)(authValidators_1.passwordResetConfirmSchema), authController.confirmPasswordReset);
 // OAuth routes
 // Google OAuth
 router.get('/google', (req, res, next) => {
