@@ -34,11 +34,6 @@ RUN mkdir -p /nginx && \
     listen 80; \
     root /app/packages/web/frontend/dist; \
     index index.html; \
-    location = /health { \
-        access_log off; \
-        add_header Content-Type text/plain; \
-        return 200 "ok"; \
-    } \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
