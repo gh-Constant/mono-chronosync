@@ -149,6 +149,11 @@ export const createServer = async (): Promise<Application> => {
 
   // Mount all routes under /api
   app.use('/api', routes);
+  
+  // Add simple test endpoint
+  app.get('/test', (req: Request, res: Response) => {
+    res.status(200).send('Server is running');
+  });
 
   return app;
 }; 
