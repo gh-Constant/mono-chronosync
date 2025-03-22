@@ -1,0 +1,77 @@
+# Use a specific node version
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@10.6.1 typescript
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY tsconfig.base.json ./
+
+# Copy source code
+COPY packages ./packages
+
+# Debug info
+RUN echo "Node version:" && node --version && \
+    echo "NPM version:" && npm --version && \
+    echo "Workspace structure:" && \
+    ls -la && ls -la packages && ls -la packages/web
+
+# Install dependencies
+RUN echo "Installing dependencies..." && \
+    pnpm install --no-frozen-lockfile
+
+# Build common package directly with tsc
+RUN echo "Building common package with TypeScript directly..." && \
+    cd packages/web/common && \
+    npx tsc || (echo "Common build failed with error code $?" && exit 1)
+
+# Build backend directly with tsc
+RUN echo "Building backend with TypeScript directly..." && \
+    cd packages/web/backend && \
+    npx tsc || (echo "Backend build failed with error code $?" && exit 1)
+
+# Build frontend (assuming it uses Vite)
+RUN echo "Building frontend..." && \
+    cd packages/web/frontend && \
+    npx vite build || (echo "Frontend build failed with error code $?" && exit 1)
+
+# Create nginx configuration for frontend
+RUN mkdir -p /nginx
+RUN echo 'server { \
+    listen 80; \
+    root /app/packages/web/frontend/dist; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /nginx/frontend.conf
+
+# Install nginx for frontend
+RUN apk add --update nginx
+
+# Create startup script
+RUN echo '#!/bin/sh \n\
+if [ "$SERVICE_TYPE" = "backend" ]; then \
+    echo "Starting backend service..." \
+    cd /app/packages/web/backend && \
+    node dist/index.js \
+elif [ "$SERVICE_TYPE" = "frontend" ]; then \
+    echo "Starting frontend service..." \
+    nginx -c /nginx/frontend.conf -g "daemon off;" \
+else \
+    echo "SERVICE_TYPE environment variable must be set to either 'frontend' or 'backend'" \
+    exit 1 \
+fi' > /app/start.sh && chmod +x /app/start.sh
+
+# Expose ports
+EXPOSE 3005 80
+
+# Health check addition for backend
+RUN echo 'app.get("/api/health", (req, res) => res.status(200).send("OK"));' >> /app/packages/web/backend/src/index.ts
+
+# Set entrypoint
+ENTRYPOINT ["/app/start.sh"] 
