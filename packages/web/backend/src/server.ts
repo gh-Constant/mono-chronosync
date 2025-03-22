@@ -66,10 +66,23 @@ export const createServer = async (): Promise<Application> => {
       const allowedOrigins = [
         'http://localhost:4173',
         'http://localhost:5173',
+        'http://chronosync-frontend:80',
+        'http://chronosync-frontend',
         'https://chronosync.constantsuchet.fr'
       ];
+      
+      console.log(`CORS Request from origin: ${origin || 'no origin'}`);
+      
+      // In development mode, allow all origins
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: allowing all origins for CORS');
+        callback(null, true);
+        return;
+      }
+      
       // Allow requests with no origin (like mobile apps, curl requests)
       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        console.log(`Origin ${origin || 'no origin'} allowed by CORS`);
         callback(null, true);
       } else {
         console.warn(`Origin ${origin} not allowed by CORS`);

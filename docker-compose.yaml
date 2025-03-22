@@ -13,7 +13,7 @@ services:
     environment:
       - SERVICE_TYPE=frontend
       - SERVICE_FQDN_FRONTEND
-      - VITE_API_URL=${API_URL:-http://localhost:3005/api}
+      - VITE_API_URL=${API_URL:-http://chronosync-backend:3005/api}
     depends_on:
       - backend
     labels:
@@ -45,8 +45,8 @@ services:
       - DB_PORT=5432
       - DB_NAME=${POSTGRES_DB:-chronosync_db}
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-chronosync_password}@postgres-chronosync:5432/${POSTGRES_DB:-chronosync_db}
-      - API_URL=${API_URL:-http://localhost:3005/api}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4173}
+      - API_URL=${API_URL:-http://chronosync-backend:3005/api}
+      - FRONTEND_URL=${FRONTEND_URL:-http://chronosync-frontend:80}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-425715035542-lmdn6ekp15cvis0kln61rik6athn0acm.apps.googleusercontent.com}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-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}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-Ov23liM0simnNPV5j96H}
