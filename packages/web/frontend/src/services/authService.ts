@@ -75,36 +75,87 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// Add more detailed error handling
+// Enhanced error handling for auth operations
+const handleApiError = (error: any) => {
+  console.error('API Error:', {
+    url: error.config?.url,
+    method: error.config?.method?.toUpperCase(),
+    status: error.response?.status,
+    statusText: error.response?.statusText,
+    headers: error.response?.headers,
+    data: error.response?.data
+  });
+
+  // Define custom error messages for specific HTTP status codes
+  const statusMessages: Record<number, string> = {
+    400: 'Invalid request data. Please check your input and try again.',
+    401: 'Authentication failed. Please check your credentials.',
+    403: 'You don\'t have permission to perform this action.',
+    404: 'The requested resource was not found.',
+    405: 'This operation is not supported. The server may be misconfigured or the API endpoint is unavailable.',
+    409: 'This account already exists. Please try logging in instead.',
+    429: 'Too many requests. Please try again later.',
+    500: 'Server error. Please try again later or contact support.',
+    502: 'Bad gateway. The server is currently unavailable.',
+    503: 'Service unavailable. Please try again later.',
+    504: 'Gateway timeout. Please try again later.'
+  };
+
+  // Format an error object with user-friendly messages
+  const errorObj = {
+    message: statusMessages[error.response?.status] || 'An unexpected error occurred.',
+    status: error.response?.status || 0,
+    details: typeof error.response?.data === 'string' 
+      ? error.response.data.substring(0, 200) // Limit string length
+      : error.response?.data || error.message || 'Unknown error',
+    path: error.config?.url || '',
+    timestamp: new Date().toISOString()
+  };
+
+  console.error('Auth Error:', errorObj);
+  return Promise.reject(errorObj);
+};
+
+// Add axios response interceptor with enhanced error handling
 axios.interceptors.response.use(
   (response) => {
     console.log(`Response from ${response.config.url}: Status ${response.status}`);
     return response;
   },
   (error) => {
-    console.error('API Error:', {
-      url: error.config?.url,
-      method: error.config?.method?.toUpperCase(),
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      headers: error.response?.headers,
-      data: error.response?.data
-    });
-    return Promise.reject(error);
+    return handleApiError(error);
   }
 );
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/login`, credentials);
-    this.setToken(response.data.token);
-    return response.data;
+    try {
+      const response = await axios.post(`${API_URL}/auth/login`, credentials);
+      this.setToken(response.data.token);
+      return response.data;
+    } catch (error: any) {
+      // Rethrow the error with the formatted error object
+      throw error;
+    }
   },
 
   async signup(credentials: RegisterCredentials): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/register`, credentials);
-    this.setToken(response.data.token);
-    return response.data;
+    try {
+      const response = await axios.post(`${API_URL}/auth/register`, credentials);
+      this.setToken(response.data.token);
+      return response.data;
+    } catch (error: any) {
+      // Check for specific 405 Method Not Allowed error on registration
+      if (error.status === 405) {
+        throw {
+          ...error,
+          message: 'Registration is currently unavailable. The server may be in maintenance mode or misconfigured.',
+          troubleshooting: 'Please try again later or contact support for assistance.'
+        };
+      }
+      // Rethrow the formatted error
+      throw error;
+    }
   },
 
   async getProfile(): Promise<{ user: AuthResponse['user'] }> {
