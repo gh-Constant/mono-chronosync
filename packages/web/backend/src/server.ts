@@ -156,10 +156,5 @@ export const createServer = async (): Promise<Application> => {
   // Mount all routes under /api
   app.use('/api', routes);
 
-  // Add health check endpoint
-  app.get('/api/health', (req: Request, res: Response) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
-
   return app;
 }; 
