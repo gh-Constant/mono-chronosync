@@ -69,15 +69,6 @@ RUN echo "=== [9] Building common package ===" && \
 RUN echo "=== [10] Verifying common package build outputs ===" && \
     ls -la packages/web/common/dist || echo "No dist folder found for common package!"
 
-# Add health check endpoint to backend
-RUN echo "=== Adding health check endpoint to backend ===" && \
-    if grep -q "'/api/health'" packages/web/backend/src/index.ts; then \
-        echo "Health check endpoint already exists"; \
-    else \
-        echo "Adding health check endpoint to backend"; \
-        echo "app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() }));" >> packages/web/backend/src/index.ts; \
-    fi
-
 # Build backend with detailed logging
 RUN echo "=== [11] Building backend package ===" && \
     (NX_VERBOSE_LOGGING=true DEBUG=nx* pnpm build:web:backend || \
