@@ -423,7 +423,14 @@ function handleOAuthLogin(provider: OAuthProvider): void {
   
   if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG.API_URL) {
     apiUrl = window.RUNTIME_CONFIG.API_URL
-    console.log('AuthView: Using API URL from runtime config:', apiUrl)
+    
+    // If the API URL is relative (starts with '/'), prepend the current origin
+    if (apiUrl.startsWith('/') && typeof window !== 'undefined') {
+      apiUrl = `${window.location.origin}${apiUrl}`
+      console.log('AuthView: Using relative API URL from runtime config:', apiUrl)
+    } else {
+      console.log('AuthView: Using API URL from runtime config:', apiUrl)
+    }
   } else if (import.meta.env.VITE_API_URL) {
     apiUrl = import.meta.env.VITE_API_URL
     console.log('AuthView: Using API URL from environment:', apiUrl)
