@@ -3,172 +3,75 @@ FROM node:20-alpine
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV NX_DAEMON=false
-ENV NX_VERBOSE_LOGGING=true
-ENV DEBUG=nx*
 
-# Install pnpm and nx globally
-RUN echo "=== [1] Installing pnpm and nx ===" && \
-    npm install -g pnpm@10.6.1 nx
-
-# Install wget for health checks
-RUN apk add --no-cache wget nginx
+# Install required tools
+RUN apk add --no-cache wget nginx netcat-openbsd curl
 
 # Set working directory
 WORKDIR /app
 
-# Copy the entire project
+# Copy package files first for better layer caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml nx.json ./
+COPY packages/web/common/package.json ./packages/web/common/
+COPY packages/web/backend/package.json ./packages/web/backend/
+COPY packages/web/frontend/package.json ./packages/web/frontend/
+
+# Install dependencies
+RUN npm install -g pnpm@10.6.1 nx && \
+    pnpm install --frozen-lockfile
+
+# Copy the rest of the source code
 COPY . .
 
-# Show node and npm versions for debugging
-RUN echo "=== [2] Node/NPM Version Info ===" && \
-    node --version && \
-    npm --version && \
-    pnpm --version && \
-    nx --version
+# Build all packages
+RUN pnpm build:web:common && \
+    pnpm build:web:backend && \
+    pnpm build:web:frontend
 
-# Check pnpm-workspace.yaml and package structure
-RUN echo "=== [3] Checking workspace configuration ===" && \
-    cat pnpm-workspace.yaml && \
-    echo "\n=== Package.json content ===" && \
-    cat package.json
-
-# Install all dependencies with better error reporting
-RUN echo "=== [4] Installing dependencies ===" && \
-    pnpm install --no-frozen-lockfile || (echo "PNPM install failed with error code $?" && exit 1)
-
-# Check for @chronosync/common package
-RUN echo "=== [5] Checking for common package ===" && \
-    ls -la packages/web/common && \
-    echo "\n=== Common package.json content ===" && \
-    cat packages/web/common/package.json
-
-# Check for backend and frontend packages
-RUN echo "=== [6] Checking for backend package ===" && \
-    ls -la packages/web/backend && \
-    echo "\n=== Backend package.json content ===" && \
-    cat packages/web/backend/package.json && \
-    echo "\n=== [7] Checking for frontend package ===" && \
-    ls -la packages/web/frontend && \
-    echo "\n=== Frontend package.json content ===" && \
-    cat packages/web/frontend/package.json
-
-# List node_modules to check if dependencies are installed correctly
-RUN echo "=== [8] Checking node_modules for workspace packages ===" && \
-    ls -la node_modules/@chronosync || echo "No @chronosync in node_modules!"
-
-# Build common package first with detailed logging
-RUN echo "=== [9] Building common package ===" && \
-    NX_VERBOSE_LOGGING=true pnpm build:web:common || \
-    (echo "\n=== Common build FAILED with error code $? ===\n" && \
-     echo "Nx.json content:" && cat nx.json && \
-     echo "\nLooking for nx cache:" && ls -la .nx && \
-     exit 1)
-
-# Check if common package was built successfully
-RUN echo "=== [10] Verifying common package build outputs ===" && \
-    ls -la packages/web/common/dist || echo "No dist folder found for common package!"
-
-# Build backend with detailed logging
-RUN echo "=== [11] Building backend package ===" && \
-    (NX_VERBOSE_LOGGING=true DEBUG=nx* pnpm build:web:backend || \
-    (echo "\n=== Backend build FAILED with error code $? ===\n" && \
-     echo "Checking tsconfig files:" && \
-     cat packages/web/backend/tsconfig.json && \
-     echo "\nBackend source files:" && \
-     ls -la packages/web/backend/src && \
-     exit 1))
-
-# Check if backend was built successfully
-RUN echo "=== [12] Verifying backend build outputs ===" && \
-    ls -la dist/packages/web/backend || echo "No dist folder found for backend package!"
-
-# Add health check page to frontend
-RUN echo "=== Adding health check page to frontend ===" && \
-    mkdir -p packages/web/frontend/public && \
-    echo '<!DOCTYPE html><html><head><title>Health Check</title></head><body><h1>OK</h1><p>Frontend is healthy</p><script>document.body.appendChild(document.createTextNode("Timestamp: " + new Date().toISOString()))</script></body></html>' > packages/web/frontend/public/health.html
-
-# Build frontend with detailed logging
-RUN echo "=== [13] Building frontend package ===" && \
-    (NX_VERBOSE_LOGGING=true DEBUG=nx* pnpm build:web:frontend || \
-    (echo "\n=== Frontend build FAILED with error code $? ===\n" && \
-     echo "Checking tsconfig files:" && \
-     cat packages/web/frontend/tsconfig.json && \
-     echo "\nFrontend source files:" && \
-     ls -la packages/web/frontend/src && \
-     exit 1))
-
-# Check if frontend was built successfully
-RUN echo "=== [14] Verifying frontend build outputs ===" && \
-    ls -la packages/web/frontend/dist || echo "No dist folder found for frontend package!"
-
-# Create frontend-specific nginx configuration with health check path
-RUN mkdir -p /nginx
-RUN echo 'server { \
+# Create nginx configuration for frontend
+RUN mkdir -p /nginx && \
+    echo 'server { \
     listen 80; \
     root /app/packages/web/frontend/dist; \
     index index.html; \
-    # Health check endpoint \
     location = /health { \
         access_log off; \
         add_header Content-Type text/plain; \
         return 200 "ok"; \
     } \
-    # Regular application routes \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \
 }' > /nginx/frontend.conf
 
-# Create a wait-for-postgres script
+# Create wait-for-postgres script
 RUN echo '#!/bin/sh' > /app/wait-for-postgres.sh && \
     echo 'set -e' >> /app/wait-for-postgres.sh && \
-    echo 'host="$1"' >> /app/wait-for-postgres.sh && \
-    echo 'shift' >> /app/wait-for-postgres.sh && \
-    echo 'port="$1"' >> /app/wait-for-postgres.sh && \
-    echo 'shift' >> /app/wait-for-postgres.sh && \
+    echo 'host="$1"; shift' >> /app/wait-for-postgres.sh && \
+    echo 'port="$1"; shift' >> /app/wait-for-postgres.sh && \
     echo 'cmd="$@"' >> /app/wait-for-postgres.sh && \
-    echo '' >> /app/wait-for-postgres.sh && \
     echo 'echo "Waiting for PostgreSQL at $host:$port..."' >> /app/wait-for-postgres.sh && \
-    echo 'max_attempts=30' >> /app/wait-for-postgres.sh && \
-    echo 'attempt=0' >> /app/wait-for-postgres.sh && \
     echo 'until nc -z "$host" "$port" > /dev/null 2>&1; do' >> /app/wait-for-postgres.sh && \
-    echo '  attempt=$((attempt+1))' >> /app/wait-for-postgres.sh && \
-    echo '  if [ $attempt -ge $max_attempts ]; then' >> /app/wait-for-postgres.sh && \
-    echo '    echo "Postgres still unavailable after $max_attempts attempts - giving up"' >> /app/wait-for-postgres.sh && \
-    echo '    exit 1' >> /app/wait-for-postgres.sh && \
-    echo '  fi' >> /app/wait-for-postgres.sh && \
-    echo '  >&2 echo "Postgres is unavailable on $host:$port - sleeping (attempt $attempt/$max_attempts)"' >> /app/wait-for-postgres.sh && \
+    echo '  echo "Postgres is unavailable - sleeping"' >> /app/wait-for-postgres.sh && \
     echo '  sleep 1' >> /app/wait-for-postgres.sh && \
     echo 'done' >> /app/wait-for-postgres.sh && \
-    echo '' >> /app/wait-for-postgres.sh && \
-    echo '>&2 echo "Postgres is up at $host:$port - executing command"' >> /app/wait-for-postgres.sh && \
+    echo 'echo "PostgreSQL is up - executing command"' >> /app/wait-for-postgres.sh && \
     echo 'exec $cmd' >> /app/wait-for-postgres.sh && \
     chmod +x /app/wait-for-postgres.sh
 
-# Install netcat for the wait script
-RUN apk add --no-cache netcat-openbsd
-
-# Create startup script to run both services with proper health checks
+# Create startup script
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'if [ "$SERVICE_TYPE" = "backend" ]; then' >> /app/start.sh && \
-    echo '    echo "Starting backend service..."' >> /app/start.sh && \
-    echo '    cd /app' >> /app/start.sh && \
-    echo '    # Add environment check and setup' >> /app/start.sh && \
-    echo '    echo "Environment: $NODE_ENV"' >> /app/start.sh && \
-    echo '    echo "Port: $PORT"' >> /app/start.sh && \
-    echo '    echo "Database URL: $DATABASE_URL"' >> /app/start.sh && \
-    echo '    echo "DB Host: $DB_HOST"' >> /app/start.sh && \
-    echo '    # Wait for postgres and then start the backend' >> /app/start.sh && \
-    echo '    echo "Running wait-for-postgres script..."' >> /app/start.sh && \
-    echo '    /app/wait-for-postgres.sh $DB_HOST $DB_PORT NODE_OPTIONS="--max-old-space-size=512 --trace-warnings" node dist/packages/web/backend/index.js' >> /app/start.sh && \
+    echo '  echo "Starting backend service..."' >> /app/start.sh && \
+    echo '  cd /app' >> /app/start.sh && \
+    echo '  echo "Environment: $NODE_ENV, Port: $PORT, DB Host: $DB_HOST"' >> /app/start.sh && \
+    echo '  /app/wait-for-postgres.sh $DB_HOST $DB_PORT NODE_OPTIONS="--max-old-space-size=512" node dist/packages/web/backend/index.js' >> /app/start.sh && \
     echo 'elif [ "$SERVICE_TYPE" = "frontend" ]; then' >> /app/start.sh && \
-    echo '    echo "Starting frontend service..."' >> /app/start.sh && \
-    echo '    # Start nginx with our custom config' >> /app/start.sh && \
-    echo '    nginx -c /nginx/frontend.conf -g "daemon off;"' >> /app/start.sh && \
+    echo '  echo "Starting frontend service..."' >> /app/start.sh && \
+    echo '  nginx -c /nginx/frontend.conf -g "daemon off;"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "SERVICE_TYPE environment variable must be set to either frontend or backend"' >> /app/start.sh && \
-    echo '    exit 1' >> /app/start.sh && \
+    echo '  echo "SERVICE_TYPE must be set to frontend or backend"' >> /app/start.sh && \
+    echo '  exit 1' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     chmod +x /app/start.sh
 
@@ -176,7 +79,4 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
 EXPOSE 3005 80
 
 # Set entrypoint to our start script
-ENTRYPOINT ["/app/start.sh"]
-
-# Install utilities for debugging (keeping basic tools for troubleshooting)
-RUN apk add --no-cache wget netcat-openbsd curl 
+ENTRYPOINT ["/app/start.sh"] 
