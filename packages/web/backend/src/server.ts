@@ -63,15 +63,17 @@ export const createServer = async (): Promise<Application> => {
   // CORS middleware with more robust configuration
   app.use(cors({
     origin: function(origin: string | undefined, callback: (err: Error | null, allow: boolean) => void) {
+      // Get allowed origins from environment or use defaults
+      const envAllowedOrigins = process.env.ALLOWED_ORIGINS ? 
+        process.env.ALLOWED_ORIGINS.split(',') : [];
+      
+      // Base allowed origins
       const allowedOrigins = [
         'http://localhost:4173',
         'http://localhost:5173',
         'http://chronosync-frontend:80',
         'http://chronosync-frontend',
-        'https://chronosync.constantsuchet.fr',
-        // Allow Coolify domains
-        '',
-        'http://n0cgc4kkk4sg8os80ckgg48g.mciut.fr'
+        ...envAllowedOrigins // Dynamically add origins from environment variable
       ];
       
       console.log(`CORS Request from origin: ${origin || 'no origin'}`);
@@ -83,7 +85,28 @@ export const createServer = async (): Promise<Application> => {
         return;
       }
       
-      // Allow requests with no origin (like mobile apps, curl requests)
+      // Extract hostname for wildcard matching
+      const getFrontendHost = () => {
+        // Parse the FRONTEND_URL if available
+        if (process.env.FRONTEND_URL) {
+          try {
+            const url = new URL(process.env.FRONTEND_URL);
+            return url.hostname;
+          } catch (e) {
+            console.warn('Invalid FRONTEND_URL format:', e);
+          }
+        }
+        return null;
+      };
+      
+      const frontendHost = getFrontendHost();
+      if (frontendHost && origin?.includes(frontendHost)) {
+        console.log(`Allowing origin ${origin} that matches frontend host ${frontendHost}`);
+        callback(null, true);
+        return;
+      }
+      
+      // Allow requests with no origin (like mobile apps, curl requests) or explicitly allowed origins
       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
         console.log(`Origin ${origin || 'no origin'} allowed by CORS`);
         callback(null, true);
