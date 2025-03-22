@@ -137,6 +137,14 @@
               
               <!-- Login Form -->
               <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="space-y-4">
+                <ApiErrorAlert 
+                  v-if="apiError" 
+                  :error="apiError" 
+                  :dismissable="true" 
+                  @dismiss="apiError = null"
+                  @retry="retryAuthentication"
+                />
+
                 <div>
                   <label for="login-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                   <div class="relative">
@@ -211,24 +219,13 @@
               
               <!-- Signup Form -->
               <form v-if="activeTab === 'signup'" @submit.prevent="handleSignup" class="space-y-4">
-                <!-- Error Alert -->
-                <div v-if="error" class="p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
-                  <div class="flex">
-                    <div class="flex-shrink-0">
-                      <svg class="h-4 w-4 sm:h-5 sm:w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                      </svg>
-                    </div>
-                    <div class="ml-3">
-                      <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                        There was an error with your submission
-                      </h3>
-                      <div class="mt-1 text-xs sm:text-sm text-red-700 dark:text-red-300">
-                        <p v-for="(line, index) in error.split('\n')" :key="index">{{ line }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ApiErrorAlert 
+                  v-if="apiError" 
+                  :error="apiError" 
+                  :dismissable="true" 
+                  @dismiss="apiError = null"
+                  @retry="retryAuthentication"
+                />
 
                 <div>
                   <label for="signup-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
@@ -336,15 +333,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, h } from 'vue'
+import { ref, onMounted, h, watch } from 'vue'
 import { 
-  GithubIcon, ClockIcon, LockIcon, MailIcon, 
-  ShieldCheckIcon, AppleIcon 
+  ShieldCheckIcon, AppleIcon, 
+  LockIcon, MailIcon
 } from 'lucide-vue-next'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import Navbar from '@/components/layout/Navbar.vue'
+import ApiErrorAlert from '@/components/ui/ApiErrorAlert.vue'
 
 // Types
 type OAuthProvider = 'google' | 'github' | 'apple'
@@ -366,7 +364,7 @@ const route = useRoute()
 
 // Auth store
 const authStore = useAuthStore()
-const { isLoading, error } = storeToRefs(authStore)
+const { isLoading, error: authStoreError } = storeToRefs(authStore)
 
 // Active tab state (login or signup)
 const activeTab = ref<'login' | 'signup'>('login')
@@ -386,6 +384,55 @@ const signupForm = ref<SignupForm>({
   agreeTerms: false
 })
 
+// Add new API error handling
+const apiError = ref<any>(null)
+
+// Map generic auth store error to more specific API error format
+const processApiError = (err: string | null) => {
+  if (!err) {
+    apiError.value = null
+    return
+  }
+  
+  // Check for specific error patterns in the message
+  if (err.includes('405') || err.includes('not supported') || err.includes('unavailable')) {
+    apiError.value = {
+      status: 405,
+      message: 'Registration is currently unavailable',
+      details: err,
+      troubleshooting: 'The server might be in maintenance mode or misconfigured. Please try again later or contact support.'
+    }
+    return
+  }
+  
+  if (err.includes('connect')) {
+    apiError.value = {
+      status: 0,
+      message: 'Connection Error',
+      details: err,
+      troubleshooting: 'Please check your internet connection and try again.'
+    }
+    return
+  }
+  
+  // Default error object
+  apiError.value = {
+    status: 400,
+    message: 'Authentication Error',
+    details: err
+  }
+}
+
+// Watch for changes in authStore error
+watch(() => authStoreError.value, (newError) => {
+  processApiError(newError)
+}, { immediate: true })
+
+// Reset the error when changing tabs
+watch(activeTab, () => {
+  apiError.value = null
+})
+
 // Set the active tab based on URL query parameter
 onMounted(() => {
   const tabParam = route.query.tab
@@ -396,24 +443,41 @@ onMounted(() => {
 
 // Auth handlers
 async function handleLogin(): Promise<void> {
+  apiError.value = null
   const { email, password, rememberMe } = loginForm.value
-  const success = await authStore.login(email, password, rememberMe)
-  
-  if (success) {
-    router.push('/oauth-callback')
+  try {
+    const success = await authStore.login(email, password, rememberMe)
+    if (success) {
+      router.push('/oauth-callback')
+    } else {
+      processApiError(authStoreError.value)
+    }
+  } catch (err: any) {
+    processApiError(err.message || 'Login failed')
   }
 }
 
 async function handleSignup(): Promise<void> {
+  apiError.value = null
   if (!signupForm.value.agreeTerms) {
+    apiError.value = {
+      status: 400,
+      message: 'Agreement Error',
+      details: 'You must agree to the Terms and Privacy Policy to continue.'
+    }
     return
   }
   
-  const { name, email, password } = signupForm.value
-  const success = await authStore.signup(name, email, password)
-  
-  if (success) {
-    router.push('/oauth-callback')
+  try {
+    const { name, email, password } = signupForm.value
+    const success = await authStore.signup(name, email, password)
+    if (success) {
+      router.push('/oauth-callback')
+    } else {
+      processApiError(authStoreError.value)
+    }
+  } catch (err: any) {
+    processApiError(err.message || 'Registration failed')
   }
 }
 
@@ -467,6 +531,15 @@ const GoogleIcon = {
         fill: '#34A853'
       })
     ])
+  }
+}
+
+// Retry function for use with ApiErrorAlert
+function retryAuthentication() {
+  if (activeTab.value === 'login') {
+    handleLogin()
+  } else {
+    handleSignup()
   }
 }
 </script>
