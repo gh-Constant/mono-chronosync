@@ -82,3 +82,51 @@ body {
   top: 20px;
   right: 20px;
   z-index: 9999;
+  max-width: 350px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slide-in 0.3s ease-out forwards;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.notification-icon {
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.notification-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #721c24;
+  margin-left: 8px;
+  padding: 0 4px;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+</style>
