@@ -39,48 +39,46 @@ RUN echo "Checking build directories and files:" && \
     find dist -type f | grep -i "index.js" || echo "No index.js files found in dist directory structure"
 
 # Create nginx configuration for frontend
-RUN mkdir -p /nginx
-COPY - <<'EOF' /nginx/frontend.conf
-events {
-    worker_connections 1024;
-}
-
-http {
-    include       /etc/nginx/mime.types;
-    default_type  application/octet-stream;
-    
-    sendfile        on;
-    keepalive_timeout  65;
-    
-    server {
-        listen 80;
-        root /app/packages/web/frontend/dist;
-        index index.html;
-        
-        # Enable gzip compression
-        gzip on;
-        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-        
-        # Add test endpoint
-        location = /test {
-            add_header Content-Type text/plain;
-            return 200 "Frontend is running";
-        }
-        
-        # Handle SPA routing
-        location / {
-            try_files $uri $uri/ /index.html;
-            add_header Cache-Control "no-cache, must-revalidate, max-age=0";
-        }
-        
-        # Cache static assets
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-            expires 30d;
-            add_header Cache-Control "public, max-age=2592000";
-        }
-    }
-}
-EOF
+RUN mkdir -p /nginx && \
+    echo 'events {' > /nginx/frontend.conf && \
+    echo '    worker_connections 1024;' >> /nginx/frontend.conf && \
+    echo '}' >> /nginx/frontend.conf && \
+    echo '' >> /nginx/frontend.conf && \
+    echo 'http {' >> /nginx/frontend.conf && \
+    echo '    include       /etc/nginx/mime.types;' >> /nginx/frontend.conf && \
+    echo '    default_type  application/octet-stream;' >> /nginx/frontend.conf && \
+    echo '    ' >> /nginx/frontend.conf && \
+    echo '    sendfile        on;' >> /nginx/frontend.conf && \
+    echo '    keepalive_timeout  65;' >> /nginx/frontend.conf && \
+    echo '    ' >> /nginx/frontend.conf && \
+    echo '    server {' >> /nginx/frontend.conf && \
+    echo '        listen 80;' >> /nginx/frontend.conf && \
+    echo '        root /app/packages/web/frontend/dist;' >> /nginx/frontend.conf && \
+    echo '        index index.html;' >> /nginx/frontend.conf && \
+    echo '        ' >> /nginx/frontend.conf && \
+    echo '        # Enable gzip compression' >> /nginx/frontend.conf && \
+    echo '        gzip on;' >> /nginx/frontend.conf && \
+    echo '        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;' >> /nginx/frontend.conf && \
+    echo '        ' >> /nginx/frontend.conf && \
+    echo '        # Add test endpoint' >> /nginx/frontend.conf && \
+    echo '        location = /test {' >> /nginx/frontend.conf && \
+    echo '            add_header Content-Type text/plain;' >> /nginx/frontend.conf && \
+    echo '            return 200 "Frontend is running";' >> /nginx/frontend.conf && \
+    echo '        }' >> /nginx/frontend.conf && \
+    echo '        ' >> /nginx/frontend.conf && \
+    echo '        # Handle SPA routing' >> /nginx/frontend.conf && \
+    echo '        location / {' >> /nginx/frontend.conf && \
+    echo '            try_files $uri $uri/ /index.html;' >> /nginx/frontend.conf && \
+    echo '            add_header Cache-Control "no-cache, must-revalidate, max-age=0";' >> /nginx/frontend.conf && \
+    echo '        }' >> /nginx/frontend.conf && \
+    echo '        ' >> /nginx/frontend.conf && \
+    echo '        # Cache static assets' >> /nginx/frontend.conf && \
+    echo '        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {' >> /nginx/frontend.conf && \
+    echo '            expires 30d;' >> /nginx/frontend.conf && \
+    echo '            add_header Cache-Control "public, max-age=2592000";' >> /nginx/frontend.conf && \
+    echo '        }' >> /nginx/frontend.conf && \
+    echo '    }' >> /nginx/frontend.conf && \
+    echo '}' >> /nginx/frontend.conf
 
 # Create wait-for-postgres script
 RUN echo '#!/bin/sh' > /app/wait-for-postgres.sh && \
