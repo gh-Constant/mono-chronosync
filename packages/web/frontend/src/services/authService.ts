@@ -10,7 +10,7 @@ const getRuntimeApiUrl = (): string => {
   if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG.API_URL) {
     const apiUrl = window.RUNTIME_CONFIG.API_URL;
     
-    // If we're in a non-localhost environment, always use relative URL
+    // If we're in a non-localhost environment, always use relative URL for reliability
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       const relativeUrl = `${window.location.origin}/api`;
       console.log('Using relative URL for non-localhost environment:', relativeUrl);
@@ -38,18 +38,48 @@ const getRuntimeApiUrl = (): string => {
     return relativeUrl;
   }
   
-  // For local development
+  // For local development, check if we're in a Docker environment
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    // Check if we're likely in a Docker container based on URL
+    if (envApiUrl.includes('localhost:3005')) {
+      console.log('Detected probable Docker environment, using localhost API URL:', envApiUrl);
+      return envApiUrl;
+    }
+    // Otherwise use a relative URL which will work with the Docker Compose setup
+    console.log('Using relative URL in local environment for best Docker compatibility');
+    return '/api';
+  }
+  
   console.log('Initial apiUrl:', envApiUrl);
   return envApiUrl;
 };
 
 const API_URL = getRuntimeApiUrl();
+console.log('Final API_URL used for authentication requests:', API_URL);
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;  // Important for CORS with credentials
 axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.timeout = 10000; // 10 second timeout
 
-// Global declaration is already in types/global.d.ts
+// Add a function to test backend connectivity
+export const testApiConnection = async (): Promise<boolean> => {
+  try {
+    console.log(`Testing API connection to: ${API_URL}/health`);
+    const response = await axios.get(`${API_URL}/health`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
+    console.log('API connection test successful:', response.data);
+    return true;
+  } catch (error) {
+    console.error('API connection test failed:', handleApiError(error));
+    return false;
+  }
+};
 
 // Add axios request interceptor to ensure correct API URL
 axios.interceptors.request.use((config) => {
@@ -75,46 +105,102 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// Enhanced error handling for auth operations
-const handleApiError = (error: any) => {
-  console.error('API Error:', {
-    url: error.config?.url,
-    method: error.config?.method?.toUpperCase(),
-    status: error.response?.status,
-    statusText: error.response?.statusText,
-    headers: error.response?.headers,
-    data: error.response?.data
-  });
-
-  // Define custom error messages for specific HTTP status codes
-  const statusMessages: Record<number, string> = {
-    400: 'Invalid request data. Please check your input and try again.',
-    401: 'Authentication failed. Please check your credentials.',
-    403: 'You don\'t have permission to perform this action.',
-    404: 'The requested resource was not found.',
-    405: 'This operation is not supported. The server may be misconfigured or the API endpoint is unavailable.',
-    409: 'This account already exists. Please try logging in instead.',
-    429: 'Too many requests. Please try again later.',
-    500: 'Server error. Please try again later or contact support.',
-    502: 'Bad gateway. The server is currently unavailable.',
-    503: 'Service unavailable. Please try again later.',
-    504: 'Gateway timeout. Please try again later.'
+// Enhanced error handling
+export const handleApiError = (error: any): { message: string; details?: string; code?: number; type?: string; isNetworkError?: boolean } => {
+  console.error('API Error:', error);
+  
+  // Network connectivity issues
+  if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+    return {
+      message: 'Request timed out. Please check your internet connection and try again.',
+      details: error.message,
+      type: 'timeout',
+      isNetworkError: true
+    };
+  }
+  
+  if (error.message?.includes('Network Error') || error.message?.includes('Failed to fetch') || 
+      error.message?.includes('ERR_CONNECTION_REFUSED') || !error.response) {
+    return {
+      message: 'Cannot connect to the server. Please check your network connection or try again later.',
+      details: 'The backend server might be unavailable or incorrectly configured.',
+      type: 'network',
+      isNetworkError: true
+    };
+  }
+  
+  // Server errors
+  if (error.response) {
+    const status = error.response.status;
+    const data = error.response.data;
+    
+    // Common HTTP status codes
+    switch (status) {
+      case 400:
+        return {
+          message: data.message || 'Invalid request. Please check your input.',
+          code: 400,
+          details: JSON.stringify(data)
+        };
+      case 401:
+        return {
+          message: data.message || 'Authentication failed. Please log in again.',
+          code: 401,
+          type: 'auth'
+        };
+      case 403:
+        return {
+          message: data.message || 'You do not have permission to perform this action.',
+          code: 403,
+          type: 'auth'
+        };
+      case 404:
+        return {
+          message: data.message || 'The requested resource was not found.',
+          code: 404
+        };
+      case 405:
+        return {
+          message: data.message || 'This operation is not supported.',
+          code: 405,
+          details: 'Method not allowed error - the endpoint might not be implemented yet.'
+        };
+      case 500:
+        return {
+          message: 'Server error. Our team has been notified.',
+          code: 500,
+          details: process.env.NODE_ENV !== 'production' ? JSON.stringify(data) : undefined
+        };
+      case 502:
+        return {
+          message: 'Cannot reach the application server. This may be a temporary issue.',
+          code: 502,
+          details: 'Bad Gateway error - the server may be unreachable or misconfigured.',
+          isNetworkError: true
+        };
+      case 503:
+        return {
+          message: 'Service temporarily unavailable. Please try again later.',
+          code: 503,
+          isNetworkError: true
+        };
+      default:
+        return {
+          message: data.message || `Unexpected error (${status}).`,
+          code: status,
+          details: JSON.stringify(data)
+        };
+    }
+  }
+  
+  // Default fallback error
+  return {
+    message: error.message || 'An unexpected error occurred',
+    details: error.toString()
   };
-
-  // Format an error object with user-friendly messages
-  const errorObj = {
-    message: statusMessages[error.response?.status] || 'An unexpected error occurred.',
-    status: error.response?.status || 0,
-    details: typeof error.response?.data === 'string' 
-      ? error.response.data.substring(0, 200) // Limit string length
-      : error.response?.data || error.message || 'Unknown error',
-    path: error.config?.url || '',
-    timestamp: new Date().toISOString()
-  };
-
-  console.error('Auth Error:', errorObj);
-  return Promise.reject(errorObj);
 };
+
+// Global declaration is already in types/global.d.ts
 
 // Add axios response interceptor with enhanced error handling
 axios.interceptors.response.use(
