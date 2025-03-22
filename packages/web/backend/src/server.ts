@@ -66,14 +66,17 @@ export const createServer = async (): Promise<Application> => {
         'http://localhost:5173',
         'http://chronosync-frontend:80',
         'http://chronosync-frontend',
-        'https://chronosync.constantsuchet.fr'
+        'https://chronosync.constantsuchet.fr',
+        // Allow Coolify domains
+        '',
+        'http://n0cgc4kkk4sg8os80ckgg48g.mciut.fr'
       ];
       
       console.log(`CORS Request from origin: ${origin || 'no origin'}`);
       
-      // In development mode, allow all origins
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Development mode: allowing all origins for CORS');
+      // In development mode or during testing, allow all origins
+      if (process.env.NODE_ENV === 'development' || process.env.ALLOW_ALL_ORIGINS === 'true') {
+        console.log('Development/testing mode: allowing all origins for CORS');
         callback(null, true);
         return;
       }

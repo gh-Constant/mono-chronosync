@@ -27,6 +27,13 @@ services:
       - traefik.http.routers.chronosync-frontend-api.entrypoints=web
       - traefik.http.routers.chronosync-frontend-api.service=chronosync-backend
       - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
+      # Enable CORS preflight requests handling
+      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowMethods=GET,OPTIONS,PUT,POST,DELETE,PATCH
+      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowOriginList=*
+      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowCredentials=true
+      - traefik.http.middlewares.cors-preflight.headers.accessControlAllowHeaders=*
+      - traefik.http.middlewares.cors-preflight.headers.accessControlMaxAge=86400
+      - traefik.http.routers.chronosync-frontend-api.middlewares=cors-preflight
       - coolify.managed=true
 
   # Backend Express.js service
