@@ -31,7 +31,14 @@ RUN pnpm build:web:common && \
 # Install production dependencies in the dist folder for backend
 RUN cd dist/packages/web/backend/src && \
     echo '{"name":"backend-src","version":"1.0.0","main":"index.js","type":"commonjs","dependencies":{"express":"^4.18.2","cors":"^2.8.5","helmet":"^7.1.0","passport":"^0.7.0","jsonwebtoken":"^9.0.2","express-rate-limit":"^7.1.5","csrf":"^3.1.0"}}' > package.json && \
-    pnpm install --prod
+    npm install --production && \
+    ls -la && \
+    ls -la node_modules
+
+# Fallback approach to ensure dependencies are available
+RUN npm install -g express cors helmet passport jsonwebtoken express-rate-limit csrf && \
+    echo "Global dependencies installed:"  && \
+    npm list -g --depth=0
 
 # Check if the build directories exist and list their contents
 RUN echo "Checking build directories and files:" && \
@@ -128,9 +135,12 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '  cd $(dirname $BACKEND_INDEX)' >> /app/start.sh && \
     echo '  echo "Running from directory: $(pwd)"' >> /app/start.sh && \
     echo '  ls -la node_modules || echo "No node_modules found in current directory"' >> /app/start.sh && \
-    echo '  echo "Setting NODE_PATH to include node_modules"' >> /app/start.sh && \
-    echo '  export NODE_PATH="$(pwd)/node_modules:$NODE_PATH"' >> /app/start.sh && \
+    echo '  echo "Setting NODE_PATH to include multiple module paths"' >> /app/start.sh && \
+    echo '  export NODE_PATH="$(pwd)/node_modules:/usr/local/lib/node_modules:$NODE_PATH"' >> /app/start.sh && \
     echo '  echo "NODE_PATH=$NODE_PATH"' >> /app/start.sh && \
+    echo '  echo "Looking for express in NODE_PATH..."' >> /app/start.sh && \
+    echo '  find $(echo $NODE_PATH | tr ":" "\n") -name "express" 2>/dev/null || echo "Express not found in NODE_PATH"' >> /app/start.sh && \
+    echo '  echo "Starting Node with debugging..."' >> /app/start.sh && \
     echo '  NODE_OPTIONS="--max-old-space-size=512" node $(basename $BACKEND_INDEX) || { echo "Backend failed to start: $?"; exit 1; }' >> /app/start.sh && \
     echo 'elif [ "$SERVICE_TYPE" = "frontend" ]; then' >> /app/start.sh && \
     echo '  echo "Starting frontend service..."' >> /app/start.sh && \
