@@ -5,9 +5,11 @@ FROM node:20-alpine
 ENV NODE_ENV=production
 ENV NX_DAEMON=false
 ENV NX_VERBOSE_LOGGING=true
+ENV DEBUG=nx*
 
 # Install pnpm and nx globally
-RUN npm install -g pnpm@10.6.1 nx
+RUN echo "=== [1] Installing pnpm and nx ===" && \
+    npm install -g pnpm@10.6.1 nx
 
 # Set working directory
 WORKDIR /app
@@ -15,25 +17,82 @@ WORKDIR /app
 # Copy the entire project
 COPY . .
 
+# Show node and npm versions for debugging
+RUN echo "=== [2] Node/NPM Version Info ===" && \
+    node --version && \
+    npm --version && \
+    pnpm --version && \
+    nx --version
+
+# Check pnpm-workspace.yaml and package structure
+RUN echo "=== [3] Checking workspace configuration ===" && \
+    cat pnpm-workspace.yaml && \
+    echo "\n=== Package.json content ===" && \
+    cat package.json
+
 # Install all dependencies with better error reporting
-RUN pnpm install --no-frozen-lockfile || (echo "PNPM install failed" && exit 1)
+RUN echo "=== [4] Installing dependencies ===" && \
+    pnpm install --no-frozen-lockfile || (echo "PNPM install failed with error code $?" && exit 1)
 
-# List directories for debugging
-RUN echo "Listing project structure:" && \
-    ls -la && \
-    echo "Listing packages:" && \
-    ls -la packages && \
-    echo "Listing web packages:" && \
-    ls -la packages/web
+# Check for @chronosync/common package
+RUN echo "=== [5] Checking for common package ===" && \
+    ls -la packages/web/common && \
+    echo "\n=== Common package.json content ===" && \
+    cat packages/web/common/package.json
 
-# Build common package first
-RUN echo "Building common package..." && \
-    pnpm build:web:common || (echo "Common build failed" && exit 1)
+# Check for backend and frontend packages
+RUN echo "=== [6] Checking for backend package ===" && \
+    ls -la packages/web/backend && \
+    echo "\n=== Backend package.json content ===" && \
+    cat packages/web/backend/package.json && \
+    echo "\n=== [7] Checking for frontend package ===" && \
+    ls -la packages/web/frontend && \
+    echo "\n=== Frontend package.json content ===" && \
+    cat packages/web/frontend/package.json
 
-# Build backend and frontend
-RUN echo "Building backend and frontend..." && \
-    pnpm build:web:backend || (echo "Backend build failed" && exit 1) && \
-    pnpm build:web:frontend || (echo "Frontend build failed" && exit 1)
+# List node_modules to check if dependencies are installed correctly
+RUN echo "=== [8] Checking node_modules for workspace packages ===" && \
+    ls -la node_modules/@chronosync || echo "No @chronosync in node_modules!"
+
+# Build common package first with detailed logging
+RUN echo "=== [9] Building common package ===" && \
+    NX_VERBOSE_LOGGING=true pnpm build:web:common || \
+    (echo "\n=== Common build FAILED with error code $? ===\n" && \
+     echo "Nx.json content:" && cat nx.json && \
+     echo "\nLooking for nx cache:" && ls -la .nx && \
+     exit 1)
+
+# Check if common package was built successfully
+RUN echo "=== [10] Verifying common package build outputs ===" && \
+    ls -la packages/web/common/dist || echo "No dist folder found for common package!"
+
+# Build backend with detailed logging
+RUN echo "=== [11] Building backend package ===" && \
+    (NX_VERBOSE_LOGGING=true DEBUG=nx* pnpm build:web:backend || \
+    (echo "\n=== Backend build FAILED with error code $? ===\n" && \
+     echo "Checking tsconfig files:" && \
+     cat packages/web/backend/tsconfig.json && \
+     echo "\nBackend source files:" && \
+     ls -la packages/web/backend/src && \
+     exit 1))
+
+# Check if backend was built successfully
+RUN echo "=== [12] Verifying backend build outputs ===" && \
+    ls -la dist/packages/web/backend || echo "No dist folder found for backend package!"
+
+# Build frontend with detailed logging
+RUN echo "=== [13] Building frontend package ===" && \
+    (NX_VERBOSE_LOGGING=true DEBUG=nx* pnpm build:web:frontend || \
+    (echo "\n=== Frontend build FAILED with error code $? ===\n" && \
+     echo "Checking tsconfig files:" && \
+     cat packages/web/frontend/tsconfig.json && \
+     echo "\nFrontend source files:" && \
+     ls -la packages/web/frontend/src && \
+     exit 1))
+
+# Check if frontend was built successfully
+RUN echo "=== [14] Verifying frontend build outputs ===" && \
+    ls -la packages/web/frontend/dist || echo "No dist folder found for frontend package!"
 
 # Create frontend-specific nginx configuration
 RUN mkdir -p /nginx
