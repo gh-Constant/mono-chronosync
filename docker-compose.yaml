@@ -15,7 +15,14 @@ services:
       - SERVICE_FQDN_FRONTEND
       - VITE_API_URL=${API_URL:-http://localhost:3005/api}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     labels:
       - traefik.enable=true
       - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`)
@@ -40,11 +47,11 @@ services:
       - JWT_SECRET=${JWT_SECRET:-replace_this_with_a_secure_random_string_in_production}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-30d}
       - DB_USER=${POSTGRES_USER:-postgres}
-      - DB_PASSWORD=${SERVICE_PASSWORD_DB}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-chronosync_password}
       - DB_HOST=postgres-chronosync
       - DB_PORT=5432
       - DB_NAME=${POSTGRES_DB:-chronosync_db}
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${SERVICE_PASSWORD_DB}@postgres-chronosync:5432/${POSTGRES_DB:-chronosync_db}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-chronosync_password}@postgres-chronosync:5432/${POSTGRES_DB:-chronosync_db}
       - API_URL=${API_URL:-http://localhost:3005/api}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:4173}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-425715035542-lmdn6ekp15cvis0kln61rik6athn0acm.apps.googleusercontent.com}
@@ -56,7 +63,14 @@ services:
       - APPLE_KEY_ID=${APPLE_KEY_ID:-your_apple_key_id}
       - APPLE_PRIVATE_KEY_LOCATION=${APPLE_PRIVATE_KEY_LOCATION:-path/to/your/private/key.p8}
     depends_on:
-      - postgres-chronosync
+      postgres-chronosync:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3005/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     labels:
       - traefik.enable=true
       - traefik.http.routers.chronosync-backend.rule=Host(`${API_FQDN:-api.chronosync.local}`)
@@ -64,7 +78,7 @@ services:
       - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
       - coolify.managed=true
 
-  # PostgreSQL Database
+  # PostgreSQL Database - Simple setup
   postgres-chronosync:
     image: postgres:16-alpine
     container_name: postgres-chronosync
@@ -73,36 +87,18 @@ services:
       - "5432:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${SERVICE_PASSWORD_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chronosync_password}
       - POSTGRES_DB=${POSTGRES_DB:-chronosync_db}
-      - SERVICE_PASSWORD_DB=${SERVICE_PASSWORD_DB:-chronosync_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-chronosync_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     labels:
-      - coolify.managed=true
-
-  # pgAdmin (optional, for database management)
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: chronosync-pgadmin
-    restart: unless-stopped
-    ports:
-      - "5050:80"
-    environment:
-      - SERVICE_FQDN_PGADMIN
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@chronosync.com}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - postgres-chronosync
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.chronosync-pgadmin.rule=Host(`${PGADMIN_FQDN:-pgadmin.chronosync.local}`)
-      - traefik.http.routers.chronosync-pgadmin.entrypoints=http
-      - traefik.http.services.chronosync-pgadmin.loadbalancer.server.port=80
       - coolify.managed=true
 
 volumes:
-  postgres_data:
-  pgadmin_data: 
+  postgres_data: 
