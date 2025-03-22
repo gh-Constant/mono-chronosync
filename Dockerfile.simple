@@ -120,6 +120,27 @@ RUN echo 'server { \
     } \
 }' > /nginx/frontend.conf
 
+# Create a wait-for-postgres script
+RUN echo '#!/bin/sh' > /app/wait-for-postgres.sh && \
+    echo 'set -e' >> /app/wait-for-postgres.sh && \
+    echo 'host="$1"' >> /app/wait-for-postgres.sh && \
+    echo 'shift' >> /app/wait-for-postgres.sh && \
+    echo 'port="$1"' >> /app/wait-for-postgres.sh && \
+    echo 'shift' >> /app/wait-for-postgres.sh && \
+    echo 'cmd="$@"' >> /app/wait-for-postgres.sh && \
+    echo '' >> /app/wait-for-postgres.sh && \
+    echo 'until wget -q --spider "http://$host:$port" 2>/dev/null || nc -z "$host" "$port"; do' >> /app/wait-for-postgres.sh && \
+    echo '  >&2 echo "Postgres is unavailable on $host:$port - sleeping"' >> /app/wait-for-postgres.sh && \
+    echo '  sleep 1' >> /app/wait-for-postgres.sh && \
+    echo 'done' >> /app/wait-for-postgres.sh && \
+    echo '' >> /app/wait-for-postgres.sh && \
+    echo '>&2 echo "Postgres is up at $host:$port - executing command"' >> /app/wait-for-postgres.sh && \
+    echo 'exec $cmd' >> /app/wait-for-postgres.sh && \
+    chmod +x /app/wait-for-postgres.sh
+
+# Install netcat for the wait script
+RUN apk add --no-cache netcat-openbsd
+
 # Create startup script to run both services with proper health checks
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'if [ "$SERVICE_TYPE" = "backend" ]; then' >> /app/start.sh && \
@@ -128,8 +149,13 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '    # Add environment check and setup' >> /app/start.sh && \
     echo '    echo "Environment: $NODE_ENV"' >> /app/start.sh && \
     echo '    echo "Port: $PORT"' >> /app/start.sh && \
-    echo '    # Start the backend with health check endpoint' >> /app/start.sh && \
-    echo '    node dist/packages/web/backend/index.js' >> /app/start.sh && \
+    echo '    echo "Database URL: $DATABASE_URL"' >> /app/start.sh && \
+    echo '    echo "DB Host: $DB_HOST"' >> /app/start.sh && \
+    echo '    echo "Health check URL will be: http://localhost:$PORT/api/health"' >> /app/start.sh && \
+    echo '    # Check if the health check endpoint is properly configured' >> /app/start.sh && \
+    echo '    grep -r "health" dist/packages/web/backend/ || echo "Warning: No health check endpoint found in built files"' >> /app/start.sh && \
+    echo '    # Wait for postgres and then start the backend' >> /app/start.sh && \
+    echo '    /app/wait-for-postgres.sh $DB_HOST 5432 NODE_OPTIONS="--max-old-space-size=512 --trace-warnings" node dist/packages/web/backend/index.js || echo "Backend failed to start with exit code: $?"' >> /app/start.sh && \
     echo 'elif [ "$SERVICE_TYPE" = "frontend" ]; then' >> /app/start.sh && \
     echo '    echo "Starting frontend service..."' >> /app/start.sh && \
     echo '    # Create a health check file that nginx can serve' >> /app/start.sh && \
