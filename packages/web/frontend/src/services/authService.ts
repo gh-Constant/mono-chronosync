@@ -48,6 +48,21 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Global declaration is already in types/global.d.ts
 
+// Add axios request interceptor to ensure correct API URL
+axios.interceptors.request.use((config) => {
+  // If URL is absolute and contains localhost but we're on a different host
+  if (config.url?.includes('localhost') && 
+      typeof window !== 'undefined' && 
+      window.location.hostname !== 'localhost') {
+    
+    // Replace the entire URL with relative path
+    const relativePath = config.url.split('/api/')[1];
+    config.url = `${window.location.origin}/api/${relativePath}`;
+    console.log('Interceptor: Fixed localhost URL to:', config.url);
+  }
+  return config;
+});
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/auth/login`, credentials);
