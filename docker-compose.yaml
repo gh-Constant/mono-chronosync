@@ -13,7 +13,8 @@ services:
     environment:
       - SERVICE_TYPE=frontend
       - SERVICE_FQDN_FRONTEND
-      - VITE_API_URL=${API_URL:-http://chronosync-backend:3005/api}
+      - NODE_ENV=production
+      - VITE_API_URL=/api
     depends_on:
       - backend
     labels:
