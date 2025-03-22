@@ -63,27 +63,27 @@ export const createServer = async (): Promise<Application> => {
   // CORS middleware with more robust configuration
   app.use(cors({
     origin: function(origin: string | undefined, callback: (err: Error | null, allow: boolean) => void) {
-      // Get allowed origins from environment or use defaults
+      console.log(`CORS Request from origin: ${origin || 'no origin'}`);
+      
+      // In production, Coolify deployment, or when ALLOW_ALL_ORIGINS is true, allow all origins
+      if (process.env.NODE_ENV === 'production' || process.env.ALLOW_ALL_ORIGINS === 'true') {
+        console.log('Production or ALLOW_ALL_ORIGINS mode: allowing all origins for CORS');
+        callback(null, true);
+        return;
+      }
+      
+      // For development environment, use a whitelist approach
       const envAllowedOrigins = process.env.ALLOWED_ORIGINS ? 
         process.env.ALLOWED_ORIGINS.split(',') : [];
       
       // Base allowed origins
       const allowedOrigins = [
         'http://localhost:4173',
-        'http://localhost:5173',
+        'http://localhost:5173', 
         'http://chronosync-frontend:80',
         'http://chronosync-frontend',
         ...envAllowedOrigins // Dynamically add origins from environment variable
       ];
-      
-      console.log(`CORS Request from origin: ${origin || 'no origin'}`);
-      
-      // In development mode or during testing, allow all origins
-      if (process.env.NODE_ENV === 'development' || process.env.ALLOW_ALL_ORIGINS === 'true') {
-        console.log('Development/testing mode: allowing all origins for CORS');
-        callback(null, true);
-        return;
-      }
       
       // Extract hostname for wildcard matching
       const getFrontendHost = () => {

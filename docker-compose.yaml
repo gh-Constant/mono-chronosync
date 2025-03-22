@@ -22,6 +22,7 @@ services:
       - traefik.http.routers.chronosync-frontend.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`)
       - traefik.http.routers.chronosync-frontend.entrypoints=web
       - traefik.http.services.chronosync-frontend.loadbalancer.server.port=80
+      - coolify.managed=true
 
   # Backend Express.js service
   backend:
@@ -35,7 +36,7 @@ services:
     environment:
       - SERVICE_TYPE=backend
       - SERVICE_FQDN_API
-      - NODE_ENV=${NODE_ENV:-development}
+      - NODE_ENV=production
       - ALLOW_ALL_ORIGINS=true
       - PORT=3005
       - JWT_SECRET=${JWT_SECRET:-replace_this_with_a_secure_random_string_in_production}
@@ -46,16 +47,8 @@ services:
       - DB_PORT=5432
       - DB_NAME=${POSTGRES_DB:-chronosync_db}
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-chronosync_password}@postgres-chronosync:5432/${POSTGRES_DB:-chronosync_db}
-      - API_URL=${API_URL:-http://chronosync-backend:3005/api}
-      - FRONTEND_URL=${FRONTEND_URL:-http://chronosync-frontend:80}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-425715035542-lmdn6ekp15cvis0kln61rik6athn0acm.apps.googleusercontent.com}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-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}
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-Ov23liM0simnNPV5j96H}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-60917318086e253577ecc4e16d3b1db38fd024fa}
-      - APPLE_CLIENT_ID=${APPLE_CLIENT_ID:-your_apple_client_id}
-      - APPLE_TEAM_ID=${APPLE_TEAM_ID:-your_apple_team_id}
-      - APPLE_KEY_ID=${APPLE_KEY_ID:-your_apple_key_id}
-      - APPLE_PRIVATE_KEY_LOCATION=${APPLE_PRIVATE_KEY_LOCATION:-path/to/your/private/key.p8}
+      - API_URL=/api
+      - FRONTEND_URL=${FRONTEND_FQDN:-https://app.chronosync.local}
     depends_on:
       - postgres-chronosync
     labels:

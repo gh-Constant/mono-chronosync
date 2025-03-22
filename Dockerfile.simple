@@ -154,14 +154,9 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '  echo "Generating runtime environment config..."' >> /app/start.sh && \
     echo '  mkdir -p /app/packages/web/frontend/dist/config' >> /app/start.sh && \
     echo '  echo "window.RUNTIME_CONFIG = {" > /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
-    echo '  # Use relative URL in production to avoid CORS and hostname issues' >> /app/start.sh && \
-    echo '  if [ "$NODE_ENV" = "production" ]; then' >> /app/start.sh && \
-    echo '    echo "  API_URL: \"/api\"," >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
-    echo '    echo "  Using relative API URL in production: /api"' >> /app/start.sh && \
-    echo '  else' >> /app/start.sh && \
-    echo '    echo "  API_URL: \"${VITE_API_URL:-http://chronosync-backend:3005/api}\"," >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
-    echo '    echo "  Using explicit API URL: ${VITE_API_URL:-http://chronosync-backend:3005/api}"' >> /app/start.sh && \
-    echo '  fi' >> /app/start.sh && \
+    echo '  # Always use relative URL in production to avoid CORS and hostname issues' >> /app/start.sh && \
+    echo '  echo "  API_URL: \"/api\"," >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
+    echo '  echo "  Using relative API URL to avoid CORS issues: /api"' >> /app/start.sh && \
     echo '  echo "  ENV: \"${NODE_ENV:-production}\"," >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
     echo '  echo "  TIMESTAMP: \"$(date)\"" >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \
     echo '  echo "};" >> /app/packages/web/frontend/dist/config/runtime-env.js' >> /app/start.sh && \

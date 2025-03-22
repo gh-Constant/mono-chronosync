@@ -4,21 +4,23 @@ import axios from 'axios';
 
 // Get API URL from runtime config (Docker), environment variable, or fallback
 const getRuntimeApiUrl = (): string => {
+  console.log('Window runtime config:', typeof window !== 'undefined' && window.RUNTIME_CONFIG);
+  
   // Check if runtime config is available (injected by Docker)
   if (typeof window !== 'undefined' && window.RUNTIME_CONFIG && window.RUNTIME_CONFIG.API_URL) {
     const apiUrl = window.RUNTIME_CONFIG.API_URL;
     
-    // If we're not on localhost but API URL contains localhost, use relative URL instead
-    if (apiUrl.includes('localhost') && typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // If we're in a non-localhost environment, always use relative URL
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       const relativeUrl = `${window.location.origin}/api`;
-      console.log('Detected localhost in non-localhost environment, using relative URL instead:', relativeUrl);
+      console.log('Using relative URL for non-localhost environment:', relativeUrl);
       return relativeUrl;
     }
     
     // If the API URL is relative (starts with '/'), prepend the current origin
     if (apiUrl.startsWith('/') && typeof window !== 'undefined') {
       const fullUrl = `${window.location.origin}${apiUrl}`;
-      console.log('Using relative API URL from runtime config:', fullUrl);
+      console.log('Using fullUrl for API connection:', fullUrl);
       return fullUrl;
     }
     
@@ -29,14 +31,15 @@ const getRuntimeApiUrl = (): string => {
   // Fallback to environment variable or default
   const envApiUrl = import.meta.env.VITE_API_URL || '/api';
   
-  // Always use relative URL in production
-  if (typeof window !== 'undefined' && (import.meta.env.PROD || import.meta.env.MODE === 'production')) {
+  // Always use relative URL if not on localhost
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
     const relativeUrl = `${window.location.origin}/api`;
-    console.log('Using relative API URL in production environment:', relativeUrl);
+    console.log('Using relative URL for deployed environment:', relativeUrl);
     return relativeUrl;
   }
   
-  console.log('Using API URL from environment:', envApiUrl);
+  // For local development
+  console.log('Initial apiUrl:', envApiUrl);
   return envApiUrl;
 };
 
@@ -50,15 +53,22 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Add axios request interceptor to ensure correct API URL
 axios.interceptors.request.use((config) => {
-  // If URL is absolute and contains localhost but we're on a different host
-  if (config.url?.includes('localhost') && 
-      typeof window !== 'undefined' && 
-      window.location.hostname !== 'localhost') {
-    
-    // Replace the entire URL with relative path
-    const relativePath = config.url.split('/api/')[1];
-    config.url = `${window.location.origin}/api/${relativePath}`;
-    console.log('Interceptor: Fixed localhost URL to:', config.url);
+  if (!config.url) return config;
+  
+  // If we're in a deployed environment (not localhost)
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // If the URL contains localhost, replace it with relative path
+    if (config.url.includes('localhost')) {
+      // Extract the path after /api/
+      const apiPath = config.url.split('/api/')[1] || '';
+      config.url = `${window.location.origin}/api/${apiPath}`;
+      console.log('Interceptor replaced localhost URL with:', config.url);
+    }
+    // If the URL doesn't have proper origin, add it
+    else if (config.url.startsWith('/api')) {
+      config.url = `${window.location.origin}${config.url}`;
+      console.log('Interceptor added origin to URL:', config.url);
+    }
   }
   
   console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`);
