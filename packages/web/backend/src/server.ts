@@ -60,7 +60,7 @@ export const createServer = async (): Promise<Application> => {
   
   // CORS middleware with more robust configuration
   app.use(cors({
-    origin: function(origin, callback) {
+    origin: function(origin: string | undefined, callback: (err: Error | null, allow: boolean) => void) {
       const allowedOrigins = [
         'http://localhost:4173',
         'http://localhost:5173',
@@ -149,6 +149,11 @@ export const createServer = async (): Promise<Application> => {
 
   // Mount all routes under /api
   app.use('/api', routes);
+
+  // Add health check endpoint
+  app.get('/api/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
   return app;
 }; 
