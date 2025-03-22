@@ -31,6 +31,21 @@ router.post(
   authController.register
 );
 
+// Add debug endpoint that accepts all methods for testing
+router.all(
+  '/debug',
+  (req: Request, res: Response) => {
+    res.status(200).json({
+      message: 'Debug endpoint reached successfully',
+      method: req.method,
+      headers: req.headers,
+      body: req.body,
+      query: req.query,
+      timestamp: new Date().toISOString()
+    });
+  }
+);
+
 // Login user
 router.post(
   '/login',
