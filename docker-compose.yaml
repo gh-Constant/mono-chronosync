@@ -23,6 +23,8 @@ services:
       - traefik.http.routers.chronosync-frontend.entrypoints=web
       - traefik.http.services.chronosync-frontend.loadbalancer.server.port=80
       - coolify.managed=true
+    networks:
+      - chronosync-network
 
   # Backend Express.js service
   backend:
@@ -52,20 +54,34 @@ services:
     depends_on:
       - postgres-chronosync
     labels:
+      # Direct backend access (not typically used in production)
       - traefik.enable=true
       - traefik.http.routers.chronosync-backend.rule=Host(`${API_FQDN:-api.chronosync.local}`)
       - traefik.http.routers.chronosync-backend.entrypoints=web
       - traefik.http.services.chronosync-backend.loadbalancer.server.port=3005
+      
+      # API routes through frontend domain with /api prefix
       - traefik.http.routers.chronosync-api.rule=Host(`${FRONTEND_FQDN:-app.chronosync.local}`) && PathPrefix(`/api`)
       - traefik.http.routers.chronosync-api.entrypoints=web
       - traefik.http.services.chronosync-api.loadbalancer.server.port=3005
+      
+      # Add path stripping middleware to remove /api prefix before forwarding to backend
+      - traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api
+      
+      # CORS headers middleware
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowMethods=GET,OPTIONS,PUT,POST,DELETE,PATCH
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowOriginList=*
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowCredentials=true
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowHeaders=Content-Type,Authorization,Origin,X-Requested-With
       - traefik.http.middlewares.cors-headers.headers.accessControlMaxAge=86400
-      - traefik.http.routers.chronosync-api.middlewares=cors-headers
+      
+      # Apply both middlewares to the API router
+      - traefik.http.routers.chronosync-api.middlewares=api-stripprefix,cors-headers
+      
+      # Coolify managed label
       - coolify.managed=true
+    networks:
+      - chronosync-network
 
   # PostgreSQL Database - Simple setup
   postgres-chronosync:
@@ -82,6 +98,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     labels:
       - coolify.managed=true
+    networks:
+      - chronosync-network
+
+networks:
+  chronosync-network:
+    driver: bridge
 
 volumes:
   postgres_data: 

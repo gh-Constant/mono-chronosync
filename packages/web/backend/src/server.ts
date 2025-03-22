@@ -82,6 +82,9 @@ export const createServer = async (): Promise<Application> => {
         'http://localhost:5173', 
         'http://chronosync-frontend:80',
         'http://chronosync-frontend',
+        'http://app.chronosync.local',
+        'http://localhost', // For local testing
+        'https://app.chronosync.local',
         ...envAllowedOrigins // Dynamically add origins from environment variable
       ];
       
@@ -195,9 +198,38 @@ export const createServer = async (): Promise<Application> => {
   // Mount all routes under /api
   app.use('/api', routes);
   
-  // Add simple test endpoint
-  app.get('/test', (req: Request, res: Response) => {
-    res.status(200).send('Server is running');
+  // Add health check endpoint
+  app.get('/api/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+  
+  // Add simple test endpoint at root for connectivity testing
+  app.get('/', (req: Request, res: Response) => {
+    res.status(200).json({ 
+      message: 'Backend server is running', 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      corsMode: process.env.ALLOW_ALL_ORIGINS === 'true' ? 'all origins allowed' : 'restricted origins'
+    });
+  });
+  
+  // Add error handling middleware
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ 
+      message: 'An unexpected error occurred',
+      error: process.env.NODE_ENV === 'production' ? undefined : err.message 
+    });
+  });
+  
+  // 404 handler for undefined routes
+  app.use((req: Request, res: Response) => {
+    console.log(`404 Not Found: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ 
+      message: 'Route not found',
+      path: req.originalUrl,
+      availableRoutes: ['/api/health', '/api/auth/login', '/api/auth/register', '/']
+    });
   });
 
   return app;
