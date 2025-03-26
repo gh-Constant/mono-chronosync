@@ -1,4 +1,4 @@
-# ChronoSync
+# 🚀 Chronosync
 
 <div align="center">
 
@@ -88,62 +88,38 @@ See [Prerequisites](./docs/getting-started/prerequisites.md) for complete requir
 ### Installation
 
 ```bash
-pnpm install
-# or
-pnpm setup
+git clone https://github.com/yourusername/chronosync.git
+cd chronosync
 ```
 
-### Development
-
-Start the web app:
+2. Set up the frontend:
 ```bash
-pnpm dev
-# or
-nx run web:dev
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Create and configure .env file
+cp .env.example .env
+# Edit .env with your settings
 ```
 
-Start a specific application:
+3. Set up the backend:
 ```bash
-# Web frontend
-pnpm dev:web:frontend
-# or
-nx run web-frontend:dev
+# Navigate to backend directory
+cd ../backend
 
-# Web backend
-pnpm dev:web:backend
-# or
-nx run web-backend:dev
+# Install dependencies
+npm install
 
-# Desktop (general)
-pnpm dev:desktop
-# or
-nx run desktop:dev
-
-# Desktop platform-specific
-pnpm dev:desktop:windows
-pnpm dev:desktop:mac
-pnpm dev:desktop:linux
-# or
-nx run desktop-windows:dev
-nx run desktop-mac:dev
-nx run desktop-linux:dev
-
-# Mobile (general)
-pnpm dev:mobile
-# or
-nx run mobile:dev
-
-# Mobile platform-specific
-pnpm dev:mobile:android
-pnpm dev:mobile:ios
-# or
-nx run mobile-android:dev
-nx run mobile-ios:dev
+# Create and configure .env file
+cp .env.example .env
+# Edit .env with your settings
 ```
 
-### Build
+4. Start the development servers:
 
-Build all projects:
 ```bash
 pnpm build
 # or
