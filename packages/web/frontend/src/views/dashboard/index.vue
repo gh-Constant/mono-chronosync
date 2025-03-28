@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DashboardLayout from '@/components/layout/dashboard/DashboardLayout.vue'
 import { Clock, CheckSquare, BarChart3, Activity } from 'lucide-vue-next'
+import AppUsageSection from '@/components/dashboard/AppUsageSection.vue'
 </script>
 
 <template>
@@ -59,6 +60,9 @@ import { Clock, CheckSquare, BarChart3, Activity } from 'lucide-vue-next'
         </div>
       </div>
     </section>
+
+    <!-- App Usage Section -->
+    <AppUsageSection />
 
     <!-- Recent Activity Section -->
     <section>
