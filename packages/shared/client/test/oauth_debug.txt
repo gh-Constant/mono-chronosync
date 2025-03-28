@@ -1,0 +1,11 @@
+2025-3-28 20:5:49 - Starting OAuth test application
+2025-3-28 20:5:49 - Successfully loaded DLL
+2025-3-28 20:5:49 - Failed to get function pointers from DLL
+2025-3-28 20:8:11 - Starting OAuth test application
+2025-3-28 20:8:11 - Looking for DLL at: C:\Users\const\mono-chronosync\packages\shared\client\test\chronosync_client.dll
+2025-3-28 20:8:11 - Successfully loaded DLL
+2025-3-28 20:8:11 - Successfully got all function pointers
+2025-3-28 20:8:11 - Deleted existing token file
+2025-3-28 20:8:11 - Successfully initialized client
+2025-3-28 20:8:11 - Successfully started login process
+2025-3-28 20:8:11 - Waiting for token file...
