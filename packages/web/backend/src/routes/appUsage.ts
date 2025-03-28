@@ -12,6 +12,7 @@ router.use(authenticate);
 router.get('/daily', appUsageController.getDailyAppUsage as RequestHandler);
 router.get('/weekly', appUsageController.getWeeklyAppUsage as RequestHandler);
 router.get('/monthly', appUsageController.getMonthlyAppUsage as RequestHandler);
+router.get('/yearly', appUsageController.getYearlyAppUsage as RequestHandler);
 router.get('/custom', appUsageController.getCustomRangeAppUsage as RequestHandler);
 
 export default router; 
