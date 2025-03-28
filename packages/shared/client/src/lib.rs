@@ -154,17 +154,30 @@ pub extern "C" fn unregister_protocol(protocol_name: *const c_char) -> bool {
     }
 }
 
-/// Start the desktop login process by opening the login page in the browser
+/// Opens the desktop login page in the default browser
 #[no_mangle]
 pub extern "C" fn start_desktop_login(redirect_uri: *const c_char) -> bool {
     let uri = unsafe { 
         if redirect_uri.is_null() { return false; }
-        CStr::from_ptr(redirect_uri).to_string_lossy().to_string()
+        match CStr::from_ptr(redirect_uri).to_str() {
+            Ok(s) => s,
+            Err(_) => return false,
+        }
     };
     
-    match open_login_page(&uri) {
+    // Construct the login URL
+    let login_url = format!(
+        "https://chronosync.constantsuchet.fr/desktop-login?redirect_uri={}",
+        url::form_urlencoded::byte_serialize(uri.as_bytes()).collect::<String>()
+    );
+
+    // Try to open the URL and handle any errors
+    match opener::open(&login_url) {
         Ok(_) => true,
-        Err(_) => false,
+        Err(e) => {
+            eprintln!("Failed to open browser: {}", e);
+            false
+        }
     }
 }
 
@@ -201,6 +214,27 @@ pub extern "C" fn parse_uri_token(uri: *const c_char, buffer: *mut c_char, buffe
     }
     
     false
+}
+
+/// Initialize the desktop client with protocol registration
+#[no_mangle]
+pub extern "C" fn init_desktop_client(exe_path: *const c_char) -> bool {
+    let path = unsafe { 
+        if exe_path.is_null() { return false; }
+        CStr::from_ptr(exe_path).to_string_lossy().to_string()
+    };
+    
+    let config = ChronosyncConfig {
+        protocol_name: "chronosync".to_string(),
+        app_path: path,
+        display_name: "ChronoSync Desktop App".to_string(),
+        icon_path: None,
+    };
+    
+    match register_uri_protocol(&config) {
+        Ok(_) => true,
+        Err(_) => false,
+    }
 }
 
 #[cfg(test)]
