@@ -1,0 +1,3 @@
+Fri Mar 28 17:31:23 2025 - Protocol handler registered successfully
+Fri Mar 28 17:31:23 2025 - Starting OAuth flow with callback: chronosync://callback
+Fri Mar 28 17:31:23 2025 - Browser opened successfully
