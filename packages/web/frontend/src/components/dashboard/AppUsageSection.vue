@@ -302,6 +302,28 @@ function formatCustomRange(): string {
   return `${start} - ${end}`
 }
 
+// Function to clear all app usage caches
+function clearAllAppUsageCaches() {
+  const timeRanges = ['daily', 'weekly', 'monthly', 'yearly', 'custom']
+  timeRanges.forEach(range => {
+    const cacheKey = getCacheKey(range)
+    localStorage.removeItem(cacheKey)
+  })
+  console.log('Cleared all app usage caches')
+}
+
+// Watch for token changes
+watch(() => localStorage.getItem('token'), (newToken, oldToken) => {
+  if (newToken !== oldToken) {
+    console.log('Token changed, clearing app usage caches')
+    clearAllAppUsageCaches()
+    if (newToken) {
+      // If we have a new token, refresh the data
+      refreshData()
+    }
+  }
+}, { immediate: true })
+
 // Load data on mount
 loadAppUsageData()
 </script>
