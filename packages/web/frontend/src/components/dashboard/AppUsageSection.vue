@@ -27,6 +27,7 @@ interface DateRange {
 const appUsageData = ref<AppUsage[]>([])
 const isLoading = ref(true)
 const hasError = ref(false)
+const error = ref<Error | null>(null)
 
 // Constants
 const TIME_RANGE_STORAGE_KEY = 'app_usage_time_range'
@@ -152,12 +153,22 @@ async function loadAppUsageData(forceRefresh = false, loadMore = false) {
       page: loadMore ? currentPage.value + 1 : 1,
       limit: itemsPerPage.value
     }
+
+    const apiUrl = getApiEndpoint()
+    const token = localStorage.getItem('token')
+
+    if (!token) {
+      throw new Error('Authentication token not found')
+    }
     
-    const response = await axios.get(getApiEndpoint(), {
+    const response = await axios.get(apiUrl, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
-      params
+      params,
+      timeout: 10000, // 10 second timeout
+      validateStatus: (status) => status >= 200 && status < 300
     })
     
     const newItems = response.data.data || []
@@ -189,11 +200,22 @@ async function loadAppUsageData(forceRefresh = false, loadMore = false) {
       localStorage.setItem(getCacheKey(selectedTimeRange.value), JSON.stringify(cacheData))
       console.log(`Cached data for ${selectedTimeRange.value}`)
     }
-  } catch (error) {
-    console.error('Error fetching app usage data:', error)
+  } catch (err: any) {
+    console.error('Error fetching app usage data:', err)
     if (!loadMore) {
       hasError.value = true
       appUsageData.value = [] // Ensure it's always an array on regular load
+      
+      // Check for specific error types
+      if (err.code === 'ERR_NETWORK') {
+        error.value = new Error('Unable to connect to the server. Please check your internet connection and try again.')
+      } else if (err.response?.status === 401) {
+        error.value = new Error('Your session has expired. Please log in again.')
+      } else if (err.message === 'Authentication token not found') {
+        error.value = new Error('Please log in to view app usage data.')
+      } else {
+        error.value = new Error('An error occurred while fetching app usage data. Please try again later.')
+      }
     }
   } finally {
     if (loadMore) {
@@ -345,13 +367,23 @@ loadAppUsageData()
       
       <!-- Error state -->
       <div v-else-if="hasError" class="p-6 text-center">
-        <p class="text-red-500 dark:text-red-400">Failed to load app usage data</p>
-        <button 
-          @click="refreshData"
-          class="mt-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md text-sm"
-        >
-          Try again
-        </button>
+        <div class="flex flex-col items-center space-y-4">
+          <div class="text-red-500 dark:text-red-400 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p class="text-lg font-medium">Failed to load app usage data</p>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto text-sm">
+            {{ error?.message || 'An unexpected error occurred. Please try again.' }}
+          </p>
+          <button 
+            @click="refreshData"
+            class="mt-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition-colors"
+          >
+            Try again
+          </button>
+        </div>
       </div>
       
       <!-- Empty state -->
