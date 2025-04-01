@@ -46,7 +46,7 @@ $(CBUILD_PATH)/%.o: %.c
 	$(CC) $(CFLAGS) $(CINCLUDE) $(CDEFINE) -c $< -o $@
 
 $(CBUILD_PATH)/%.o: %.cpp
-	$(CC) $(CFLAGS) -std=c++17 $(CINCLUDE) $(CDEFINE) -c $< -o $@
+	$(CC) $(CFLAGS) $(CINCLUDE) $(CDEFINE) -c $< -o $@
 
 
 # Clean rule

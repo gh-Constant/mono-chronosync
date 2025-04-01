@@ -1,5 +1,5 @@
 BUILD_PATH=..\Build
-MAKE_CMD=$(MAKE) RELEASE=$(RELEASE) ARCH=arm64 -C
+MAKE_CMD=$(MAKE) RELEASE=$(RELEASE) -C
 
 all: $(MAKEFILES_PATH)
 	$(MAKE_CMD) src
@@ -8,5 +8,5 @@ all: $(MAKEFILES_PATH)
 
 # Clean rule
 clean:
-	if exist $(BUILD_PATH) rmdir /s /q $(BUILD_PATH)
+	del /q /s $(BUILD_PATH)
 #	rm -f $(CBUILD_PATH)/*.o $(CBUILD_PATH)/$(EXE)

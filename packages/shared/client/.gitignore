@@ -1,0 +1,17 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test artifacts
+test/oauth_log.txt
+test/oauth_token.txt
+
+# Windows Registry backup files
+*.reg

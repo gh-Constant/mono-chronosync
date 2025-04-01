@@ -1,0 +1,27 @@
+[package]
+name = "chronosync-client"
+version = "0.1.0"
+edition = "2021"
+description = "ChronoSync desktop client library with URI protocol support"
+authors = ["ChronoSync Team"]
+
+[lib]
+name = "chronosync_client"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "chronosync-client-app"
+path = "src/main.rs"
+
+[dependencies]
+winreg = "0.10.1"
+url = "2.3.1"
+opener = "0.5.0"
+
+[dev-dependencies]
+tempfile = "3.3.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
