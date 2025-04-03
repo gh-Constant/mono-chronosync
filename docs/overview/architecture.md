@@ -47,9 +47,9 @@ The project is structured as a monorepo using Nx and PNPM workspaces, which allo
 ├───────────────┬───────────────────────┬─────────────────────┤
 │  Web Package  │   Desktop Package     │   Mobile Package    │
 ├───────┬───────┼───────────┬───────────┼───────────┬─────────┤
-│Frontend│Backend│  Windows  │   macOS   │  Android  │   iOS   │
+│Frontend│Backend│  Windows │   macOS   │  Android  │   iOS   │
 └───────┴───────┴───────────┴───────────┴───────────┴─────────┘
-             │                                │
+             │                               │
              └────────────────┬──────────────┘
                               │
                               ▼
@@ -65,10 +65,10 @@ The project is structured as a monorepo using Nx and PNPM workspaces, which allo
 The web frontend follows the Vue.js component-based architecture with Pinia for state management:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Vue.js Application                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
+┌────────────────────────────────────────────────────────────┐
+│                      Vue.js Application                    │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
 │  │    Views    │    │  Components │    │   Layouts   │     │
 │  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘     │
@@ -78,10 +78,10 @@ The web frontend follows the Vue.js component-based architecture with Pinia for 
 │                            ▼                               │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
 │  │   Router    │◄───┤    Pinia    │    │   Services  │     │
-│  │  (Vue Router)│    │   (Store)   │◄───┤  (API, etc) │     │
+│  │ (Vue Router)│    │   (Store)   │◄───┤  (API, etc) │     │
 │  └─────────────┘    └─────────────┘    └─────────────┘     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+│                                                            │
+└────────────────────────────────────────────────────────────┘
 ```
 
 ### Backend Architecture (Express.js)
@@ -89,10 +89,10 @@ The web frontend follows the Vue.js component-based architecture with Pinia for 
 The backend follows a layered architecture with clear separation of concerns:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Express.js Application                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
+┌────────────────────────────────────────────────────────────┐
+│                    Express.js Application                  │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
 │  │   Routes    │───►│ Controllers │───►│  Services   │     │
 │  └─────────────┘    └─────────────┘    └──────┬──────┘     │
@@ -107,8 +107,8 @@ The backend follows a layered architecture with clear separation of concerns:
 │                                        │  Database   │     │
 │                                        │ (PostgreSQL)│     │
 │                                        └─────────────┘     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+│                                                            │
+└────────────────────────────────────────────────────────────┘
 ```
 
 ## Authentication Flow

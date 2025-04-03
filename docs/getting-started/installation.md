@@ -12,7 +12,7 @@ Before proceeding, ensure you have met all the [prerequisites](./prerequisites.m
 2. Clone the repository using Git:
 
 ```bash
-git clone https://github.com/yourusername/chronosync.git
+git clone https://github.com/constantsuchet/chronosync.git
 cd chronosync
 ```
 
