@@ -60,6 +60,17 @@ const applyAuthLimiter = (req, res, next) => {
 // Register a new user
 router.post('/register', applyAuthLimiter, // Apply rate limiting
 (0, authValidators_1.validate)(authValidators_1.registerSchema), authController.register);
+// Add debug endpoint that accepts all methods for testing
+router.all('/debug', (req, res) => {
+    res.status(200).json({
+        message: 'Debug endpoint reached successfully',
+        method: req.method,
+        headers: req.headers,
+        body: req.body,
+        query: req.query,
+        timestamp: new Date().toISOString()
+    });
+});
 // Login user
 router.post('/login', applyAuthLimiter, // Apply rate limiting
 (0, authValidators_1.validate)(authValidators_1.loginSchema), authController.login);

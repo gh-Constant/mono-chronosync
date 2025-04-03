@@ -195,3 +195,68 @@ ON CONFLICT DO NOTHING;
 INSERT INTO applications (app_name, package_name, type_id) 
 VALUES ('Chronosync', 'com.chronosync.app', 1) 
 ON CONFLICT DO NOTHING;
+
+-- Insert test app usage data for user 1 if they exist
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM users WHERE id = 1) THEN
+        -- Insert test devices for user 1
+        INSERT INTO devices (user_id, device_name, os_name)
+        VALUES 
+            (1, 'Test iPhone', 'iOS'),
+            (1, 'Test Android', 'Android')
+        ON CONFLICT DO NOTHING;
+
+        -- Insert test app usage sessions for today
+        INSERT INTO app_usage_sessions (user_id, device_id, app_id, start_time, end_time)
+        SELECT
+            1,
+            (SELECT device_id FROM devices WHERE user_id = 1 AND device_name = 'Test iPhone' LIMIT 1),
+            (SELECT app_id FROM applications WHERE package_name = 'com.chronosync.app' LIMIT 1),
+            generate_series(
+                CURRENT_DATE + INTERVAL '9 hours',
+                CURRENT_DATE + INTERVAL '17 hours',
+                INTERVAL '2 hours'
+            ),
+            generate_series(
+                CURRENT_DATE + INTERVAL '10 hours',
+                CURRENT_DATE + INTERVAL '18 hours',
+                INTERVAL '2 hours'
+            );
+
+        -- Insert test app usage sessions for past week
+        INSERT INTO app_usage_sessions (user_id, device_id, app_id, start_time, end_time)
+        SELECT
+            1,
+            (SELECT device_id FROM devices WHERE user_id = 1 AND device_name = 'Test Android' LIMIT 1),
+            (SELECT app_id FROM applications WHERE package_name = 'com.chronosync.app' LIMIT 1),
+            generate_series(
+                CURRENT_DATE - INTERVAL '7 days' + INTERVAL '9 hours',
+                CURRENT_DATE - INTERVAL '1 day' + INTERVAL '17 hours',
+                INTERVAL '4 hours'
+            ),
+            generate_series(
+                CURRENT_DATE - INTERVAL '7 days' + INTERVAL '10 hours', 
+                CURRENT_DATE - INTERVAL '1 day' + INTERVAL '18 hours',
+                INTERVAL '4 hours'
+            );
+
+        -- Insert test app usage sessions for past month
+        INSERT INTO app_usage_sessions (user_id, device_id, app_id, start_time, end_time)
+        SELECT
+            1,
+            (SELECT device_id FROM devices WHERE user_id = 1 AND device_name = 'Test iPhone' LIMIT 1),
+            (SELECT app_id FROM applications WHERE package_name = 'com.chronosync.app' LIMIT 1),
+            generate_series(
+                CURRENT_DATE - INTERVAL '30 days' + INTERVAL '9 hours',
+                CURRENT_DATE - INTERVAL '8 days' + INTERVAL '17 hours', 
+                INTERVAL '12 hours'
+            ),
+            generate_series(
+                CURRENT_DATE - INTERVAL '30 days' + INTERVAL '11 hours',
+                CURRENT_DATE - INTERVAL '8 days' + INTERVAL '19 hours',
+                INTERVAL '12 hours'
+            );
+    END IF;
+END
+$$;

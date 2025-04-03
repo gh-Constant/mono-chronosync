@@ -66,12 +66,14 @@ const connectionConfig = {
 };
 // Create pool based on environment
 const pool = isProduction
-    ? new pg_1.Pool({ connectionString: process.env.DATABASE_URL, ssl: false })
+    ? new pg_1.Pool(connectionConfig)
     : new pg_1.Pool(connectionConfig);
 // Initialize database function
 const initializeDatabase = async () => {
-    const client = await pool.connect();
+    let client;
     try {
+        console.log('Getting database connection...');
+        client = await pool.connect();
         console.log('Testing database connection...');
         // Simple query to verify connection
         await client.query('SELECT NOW()');
@@ -106,11 +108,13 @@ const initializeDatabase = async () => {
         console.error('Error initializing database:', error);
         if (error instanceof Error) {
             console.error('Error details:', error.message);
+            console.error('Error stack:', error.stack);
         }
         throw error;
     }
     finally {
-        client.release();
+        if (client)
+            client.release();
     }
 };
 exports.initializeDatabase = initializeDatabase;
