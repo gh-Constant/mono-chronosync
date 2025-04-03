@@ -1,4 +1,5 @@
 {
+  "types": ["three", "@types/three"],
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ESNext",
