@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="./packages/web/frontend/src/assets/chronosync-logo.svg" alt="ChronoSync Logo" width="250" height="250">
+<img src="..\packages\web\frontend\src\assets\chronosync-logo.svg" alt="ChronoSync Logo" width="250" height="250">
 
 **A cross-platform time synchronization and scheduling application**
 
