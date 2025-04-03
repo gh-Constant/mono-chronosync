@@ -1,0 +1,8 @@
+export { default as SettingsCard } from './SettingsCard.vue'
+export { default as ProfilePictureUpload } from './ProfilePictureUpload.vue'
+export { default as PasswordChange } from './PasswordChange.vue'
+export { default as DeleteAccount } from './DeleteAccount.vue'
+export { default as ThemeSelector } from './ThemeSelector.vue'
+export { default as DefaultAvatar } from './DefaultAvatar.vue'
+export { default as ToggleSwitch } from './ToggleSwitch.vue'
+export { default as SettingsSection } from './SettingsSection.vue'

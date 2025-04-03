@@ -23,7 +23,7 @@ const contentPadding = computed(() => {
     }"
     class="min-h-screen transition-all duration-300"
   >
-    <div class="mx-auto w-full max-w-4xl px-6 sm:px-8 py-8 flex flex-col items-center">
+    <div class="mx-auto w-full max-w-7xl px-6 sm:px-8 py-8 flex flex-col items-center">
       <div class="w-full">
         <slot />
       </div>
@@ -55,4 +55,4 @@ main {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
 }
-</style> 
+</style>

@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- OAuth accounts table - For third-party authentication
+-- OAuth accounts table - For third-p arty authentication
 CREATE TABLE IF NOT EXISTS oauth_accounts (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

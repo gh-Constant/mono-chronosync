@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import DashboardLayout from '@/components/layout/dashboard/DashboardLayout.vue'
+import SettingsLayout from '@/components/settings/SettingsLayout.vue'
+import AccountSettings from '@/components/settings/sections/AccountSettings.vue'
+import AppearanceSettings from '@/components/settings/sections/AppearanceSettings.vue'
+import PrivacySettings from '@/components/settings/sections/PrivacySettings.vue'
+import NotificationSettings from '@/components/settings/sections/NotificationSettings.vue'
+import AppSettings from '@/components/settings/sections/AppSettings.vue'
 </script>
 
 <template>
@@ -11,9 +17,26 @@ import DashboardLayout from '@/components/layout/dashboard/DashboardLayout.vue'
     </div>
 
     <!-- Settings Content -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-      <h2 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">Account Settings</h2>
-      <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Settings implementation goes here</p>
-    </div>
+    <SettingsLayout>
+      <template #account>
+        <AccountSettings />
+      </template>
+
+      <template #appearance>
+        <AppearanceSettings />
+      </template>
+
+      <template #privacy>
+        <PrivacySettings />
+      </template>
+
+      <template #notifications>
+        <NotificationSettings />
+      </template>
+
+      <template #app>
+        <AppSettings />
+      </template>
+    </SettingsLayout>
   </DashboardLayout>
-</template> 
+</template>

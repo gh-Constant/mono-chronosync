@@ -1,6 +1,6 @@
-# chronosync-frontend
+# ChronoSync Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+The frontend application for ChronoSync, built with Vue 3, TypeScript, and Tailwind CSS.
 
 ## Recommended IDE Setup
 
@@ -43,3 +43,17 @@ pnpm test:unit
 ```sh
 pnpm lint
 ```
+
+## Features
+
+### User Settings
+
+The application includes a comprehensive settings page with the following sections:
+
+- **Account Settings**: Manage profile information, change password, and delete account
+- **Appearance Settings**: Customize theme (light/dark/system) and UI preferences
+- **Privacy & Security Settings**: Manage cookie preferences, data export, and security options
+- **Notification Settings**: Configure email and in-app notification preferences
+- **Application Settings**: Set language, timezone, date formats, and default views
+
+To access the settings page, navigate to `/dashboard/settings` or click on the Settings option in the sidebar.
