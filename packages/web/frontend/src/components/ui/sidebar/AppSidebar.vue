@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Home, Calendar, Settings, User2, LogOut, Menu, ChevronLeft } from 'lucide-vue-next'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarTrigger,
-  useSidebar
-} from '@/components/ui/sidebar'
+import { Home, Calendar, Settings, User2, LogOut, ChevronLeft } from 'lucide-vue-next'
+import { useSidebar } from '@/components/ui/sidebar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth'
 import { useRoute } from 'vue-router'
@@ -61,12 +54,16 @@ const isExpanded = computed(() => sidebar.state.value === 'expanded')
           </div>
           <span class="text-lg font-semibold">Chrono<span class="text-purple-600">sync</span></span>
         </router-link>
-        <SidebarTrigger class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+        <button
+          @click="sidebar.toggleSidebar"
+          class="ml-auto flex h-10 w-10 items-center justify-center rounded-lg bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-purple-600 dark:hover:bg-purple-500 hover:shadow-md hover:shadow-purple-300/30 dark:hover:shadow-purple-900/30 hover:scale-105 transition-all duration-300"
+        >
           <ChevronLeft :class="[
-            'h-5 w-5 transition-transform',
+            'h-5 w-5 transition-all duration-300',
             isExpanded ? '' : 'rotate-180'
           ]" />
-        </SidebarTrigger>
+          <span class="sr-only">Toggle Sidebar</span>
+        </button>
       </div>
     </div>
 
@@ -78,13 +75,20 @@ const isExpanded = computed(() => sidebar.state.value === 'expanded')
           :key="item.title"
           :to="item.to"
           :class="[
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 dark:text-gray-400 transition-colors',
-            'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800',
-            isCurrentRoute(item.to) ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : ''
+            'flex items-center gap-3 rounded-lg px-4 py-3 text-gray-500 dark:text-gray-400 transition-all duration-300 my-1 min-h-[3rem]',
+            'hover:text-purple-700 dark:hover:text-purple-400 hover:bg-purple-100/50 dark:hover:bg-purple-900/20 hover:shadow-sm hover:shadow-purple-200/20 dark:hover:shadow-purple-900/20',
+            isCurrentRoute(item.to) ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 shadow-sm shadow-purple-200/20 dark:shadow-purple-900/20' : '',
+            isExpanded ? 'justify-start' : 'justify-center'
           ]"
         >
-          <component :is="item.icon" class="h-5 w-5 flex-shrink-0" />
-          <span v-if="isExpanded" class="text-sm font-medium">{{ item.title }}</span>
+          <component
+            :is="item.icon"
+            :class="[
+              'flex-shrink-0 transition-all duration-500',
+              isExpanded ? 'h-6 w-6' : 'h-8 w-8 mx-auto'
+            ]"
+          />
+          <span v-if="isExpanded" class="text-base font-medium">{{ item.title }}</span>
         </router-link>
       </nav>
     </div>
@@ -94,20 +98,21 @@ const isExpanded = computed(() => sidebar.state.value === 'expanded')
       <div class="flex flex-col gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger :class="[
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400',
-            'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+            'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-gray-500 dark:text-gray-400 transition-all duration-300 min-h-[3rem]',
+            'hover:text-purple-700 dark:hover:text-purple-400 hover:bg-purple-100/50 dark:hover:bg-purple-900/20 hover:shadow-sm hover:shadow-purple-200/20 dark:hover:shadow-purple-900/20',
+            isExpanded ? 'justify-start' : 'justify-center'
           ]">
-            <User2 class="h-5 w-5 flex-shrink-0" />
-            <span v-if="isExpanded">{{ userName }}</span>
+            <User2 :class="['flex-shrink-0', isExpanded ? 'h-6 w-6' : 'h-7 w-7 mx-auto']" />
+            <span v-if="isExpanded" class="text-base">{{ userName }}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="start" class="w-48">
             <DropdownMenuItem @click="logout" class="cursor-pointer">
-              <LogOut class="mr-2 h-4 w-4" />
-              <span>Logout</span>
+              <LogOut class="mr-2 h-5 w-5" />
+              <span class="text-base">Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        
+
         <div :class="[
           'flex rounded-lg px-3 py-2',
           isExpanded ? 'justify-start' : 'justify-center'
@@ -121,6 +126,63 @@ const isExpanded = computed(() => sidebar.state.value === 'expanded')
 
 <style scoped>
 .router-link-active {
-  @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white;
+  @apply bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 shadow-sm shadow-purple-200/20 dark:shadow-purple-900/20;
+}
+
+/* Ensure icons are properly centered in collapsed state */
+.router-link-active svg,
+.router-link svg {
+  @apply mx-auto;
+}
+
+/* Hover animations for Dashboard icon */
+.router-link-active:hover svg,
+.router-link:hover svg {
+  @apply scale-110;
+}
+
+/* Dashboard icon hover animation - bounce */
+.router-link-active:has([to="/dashboard"]):hover svg,
+.router-link:has([to="/dashboard"]):hover svg {
+  animation: bounce 1s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1.1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.1);
+  }
+}
+
+/* Calendar icon hover animation - slide */
+.router-link-active:has([to="/calendar"]):hover svg,
+.router-link:has([to="/calendar"]):hover svg {
+  animation: slideInOut 1.5s infinite ease-in-out;
+}
+
+@keyframes slideInOut {
+  0%, 100% {
+    transform: translateX(0) scale(1.1);
+  }
+  50% {
+    transform: translateX(3px) scale(1.1);
+  }
+}
+
+/* Settings icon hover animation - rotation */
+.router-link-active:has([to="/settings"]):hover svg,
+.router-link:has([to="/settings"]):hover svg {
+  animation: rotate 4s linear infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1.1);
+  }
 }
 </style>

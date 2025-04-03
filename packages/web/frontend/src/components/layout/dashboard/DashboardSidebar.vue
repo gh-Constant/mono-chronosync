@@ -2,7 +2,6 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Home, Calendar, Settings, User2, LogOut, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useSidebar } from '@/components/ui/sidebar'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth'
 import { useRoute } from 'vue-router'
@@ -79,7 +78,7 @@ function handleTouchEnd(e: TouchEvent) {
 function handleSwipe() {
   const swipeDistance = touchStartX.value - touchEndX.value
   const isNearRightEdge = window.innerWidth - touchStartX.value < EDGE_THRESHOLD
-  
+
   // If swiping left from right edge and sidebar is hidden
   if (swipeDistance > MIN_SWIPE_DISTANCE && isNearRightEdge && isSidebarHidden.value) {
     toggleSidebar()
@@ -102,8 +101,8 @@ onUnmounted(() => {
 <template>
   <!-- Overlay for closing sidebar when clicking outside -->
   <transition name="fade">
-    <div 
-      v-if="isMobile && isExpanded" 
+    <div
+      v-if="isMobile && isExpanded"
       class="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm"
       @click="toggleSidebar"
     ></div>
@@ -111,18 +110,18 @@ onUnmounted(() => {
 
   <!-- Floating trigger button when sidebar is hidden on mobile -->
   <div v-if="isSidebarHidden" class="fixed top-3 right-3 z-50">
-    <button 
-      class="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md hover:bg-gray-100/90 dark:hover:bg-gray-700/90 border border-gray-200/50 dark:border-gray-700/50"
+    <button
+      class="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md hover:bg-purple-100/90 dark:hover:bg-purple-900/50 hover:shadow-lg hover:shadow-purple-200/30 dark:hover:shadow-purple-900/30 border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 hover:translate-y-[-2px] text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-400"
       @click="toggleSidebar"
     >
-      <ChevronRight class="h-5 w-5 transition-transform duration-300" />
+      <ChevronRight class="h-5 w-5 transition-all duration-300 hover:animate-pulse" />
       <span class="sr-only">Open Sidebar</span>
     </button>
   </div>
 
   <!-- Main sidebar - hidden when in mobile collapsed state -->
   <transition name="slide-fade">
-    <div 
+    <div
       v-if="!isSidebarHidden"
       class="fixed inset-y-0 z-50 flex h-screen flex-col bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm transition-all duration-300"
       :class="[
@@ -150,23 +149,32 @@ onUnmounted(() => {
               </div>
               <span class="text-lg font-semibold">Chrono<span class="text-purple-600">sync</span></span>
             </div>
-            
-            <SidebarTrigger class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100/90 dark:hover:bg-gray-800/90">
-              <ChevronLeft class="h-5 w-5 transition-transform duration-300" />
-            </SidebarTrigger>
+
+            <button
+              @click="toggleSidebar"
+              class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-purple-600 dark:hover:bg-purple-500 hover:shadow-md hover:shadow-purple-300/30 dark:hover:shadow-purple-900/30 hover:scale-105 transition-all duration-300"
+            >
+              <ChevronLeft class="h-5 w-5 transition-all duration-300" />
+              <span class="sr-only">Toggle Sidebar</span>
+            </button>
           </div>
 
           <!-- Desktop or collapsed mobile state -->
-          <SidebarTrigger v-if="!isMobile || !isExpanded" :class="[
-            'flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100/90 dark:hover:bg-gray-800/90',
-            !isMobile ? 'ml-auto' : 'mx-auto'
-          ]">
+          <button
+            v-if="!isMobile || !isExpanded"
+            @click="toggleSidebar"
+            :class="[
+              'flex h-10 w-10 items-center justify-center rounded-lg bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-purple-600 dark:hover:bg-purple-500 hover:shadow-md hover:shadow-purple-300/30 dark:hover:shadow-purple-900/30 hover:scale-105 transition-all duration-300',
+              !isMobile ? 'ml-auto' : 'mx-auto'
+            ]"
+          >
             <ChevronLeft :class="[
-              'h-5 w-5 transition-transform duration-300',
+              'h-5 w-5 transition-all duration-300',
               !isExpanded && !isMobile ? 'rotate-180' : '',
               isMobile ? 'rotate-180' : ''
             ]" />
-          </SidebarTrigger>
+            <span class="sr-only">Toggle Sidebar</span>
+          </button>
         </div>
       </div>
 
@@ -178,14 +186,20 @@ onUnmounted(() => {
             :key="item.title"
             :to="item.to"
             :class="[
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 dark:text-gray-400 transition-colors',
-              'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/80',
-              isCurrentRoute(item.to) ? 'bg-gray-100/80 dark:bg-gray-800/80 text-gray-900 dark:text-white' : '',
-              isMobile ? 'justify-start' : ''
+              'flex items-center gap-3 rounded-lg px-4 py-3 text-gray-500 dark:text-gray-400 transition-all duration-300 my-1 min-h-[3rem]',
+              'hover:text-purple-700 dark:hover:text-purple-400 hover:bg-purple-100/50 dark:hover:bg-purple-900/20 hover:shadow-sm hover:shadow-purple-200/20 dark:hover:shadow-purple-900/20',
+              isCurrentRoute(item.to) ? 'bg-purple-100/80 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 shadow-sm shadow-purple-200/20 dark:shadow-purple-900/20' : '',
+              isExpanded || isMobile ? 'justify-start' : 'justify-center'
             ]"
           >
-            <component :is="item.icon" class="h-5 w-5 flex-shrink-0" />
-            <span v-if="isExpanded" class="text-sm font-medium">{{ item.title }}</span>
+            <component
+              :is="item.icon"
+              :class="[
+                'flex-shrink-0 transition-all duration-500',
+                isExpanded || isMobile ? 'h-6 w-6' : 'h-8 w-8 mx-auto'
+              ]"
+            />
+            <span v-if="isExpanded" class="text-base font-medium">{{ item.title }}</span>
           </router-link>
         </nav>
       </div>
@@ -195,25 +209,25 @@ onUnmounted(() => {
         <div class="flex flex-col gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger :class="[
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400',
-              'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/80 dark:hover:bg-gray-800/80',
-              isMobile ? 'justify-start' : ''
+              'flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-gray-500 dark:text-gray-400 transition-all duration-300 min-h-[3rem]',
+              'hover:text-purple-700 dark:hover:text-purple-400 hover:bg-purple-100/50 dark:hover:bg-purple-900/20 hover:shadow-sm hover:shadow-purple-200/20 dark:hover:shadow-purple-900/20',
+              isExpanded || isMobile ? 'justify-start' : 'justify-center'
             ]">
-              <User2 class="h-5 w-5 flex-shrink-0" />
-              <span v-if="isExpanded">{{ userName }}</span>
+              <User2 :class="['flex-shrink-0', isExpanded || isMobile ? 'h-6 w-6' : 'h-7 w-7 mx-auto']" />
+              <span v-if="isExpanded" class="text-base">{{ userName }}</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              :side="isMobile ? 'left' : 'right'" 
-              align="start" 
+            <DropdownMenuContent
+              :side="isMobile ? 'left' : 'right'"
+              align="start"
               class="w-48"
             >
               <DropdownMenuItem @click="logout" class="cursor-pointer">
-                <LogOut class="mr-2 h-4 w-4" />
-                <span>Logout</span>
+                <LogOut class="mr-2 h-5 w-5" />
+                <span class="text-base">Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           <div :class="[
             'flex rounded-lg px-3 py-2',
             isExpanded ? 'justify-start' : 'justify-center'
@@ -228,7 +242,64 @@ onUnmounted(() => {
 
 <style scoped>
 .router-link-active {
-  @apply bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white;
+  @apply bg-purple-100/80 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 shadow-sm shadow-purple-200/20 dark:shadow-purple-900/20;
+}
+
+/* Hover animations for Dashboard icon */
+/* Ensure icons are properly centered in collapsed state */
+.router-link-active svg,
+.router-link svg {
+  @apply mx-auto;
+}
+
+.router-link-active:hover svg,
+.router-link:hover svg {
+  @apply scale-110;
+}
+
+/* Dashboard icon hover animation - bounce */
+.router-link-active:has([to="/dashboard"]):hover svg,
+.router-link:has([to="/dashboard"]):hover svg {
+  animation: bounce 1s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1.1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.1);
+  }
+}
+
+/* Calendar icon hover animation - slide */
+.router-link-active:has([to="/dashboard/calendar"]):hover svg,
+.router-link:has([to="/dashboard/calendar"]):hover svg {
+  animation: slideInOut 1.5s infinite ease-in-out;
+}
+
+@keyframes slideInOut {
+  0%, 100% {
+    transform: translateX(0) scale(1.1);
+  }
+  50% {
+    transform: translateX(3px) scale(1.1);
+  }
+}
+
+/* Settings icon hover animation - rotation */
+.router-link-active:has([to="/dashboard/settings"]):hover svg,
+.router-link:has([to="/dashboard/settings"]):hover svg {
+  animation: rotate 4s linear infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1.1);
+  }
 }
 
 /* Slide animation for sidebar */
@@ -253,4 +324,4 @@ onUnmounted(() => {
 .fade-leave-to {
   opacity: 0;
 }
-</style> 
+</style>

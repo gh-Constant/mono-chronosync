@@ -23,16 +23,26 @@ const iconRotation = computed(() => {
     data-sidebar="trigger"
     variant="ghost"
     size="icon"
-    :class="cn('h-7 w-7', props.class)"
+    :class="cn('h-10 w-10 min-w-10 min-h-10 bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-purple-600 dark:hover:bg-purple-500 hover:shadow-md hover:shadow-purple-300/30 dark:hover:shadow-purple-900/30 hover:scale-110 hover:rotate-[360deg] transition-all duration-500', props.class)"
     @click="toggleSidebar"
   >
-    <ChevronRight 
+    <ChevronRight
       :class="[
-        'transition-transform duration-300',
-        { 'transform rotate-180': iconRotation === 180 }
+        'transition-transform duration-500',
+        { 'transform rotate-180': iconRotation === 180 },
+        'animate-pulse'
       ]"
     />
     <span class="sr-only">Toggle Sidebar</span>
   </Button>
 </template>
-  
+
+<style scoped>
+.min-w-10 {
+  min-width: 2.5rem;
+}
+
+.min-h-10 {
+  min-height: 2.5rem;
+}
+</style>

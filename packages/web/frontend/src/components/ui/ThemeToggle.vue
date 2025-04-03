@@ -2,14 +2,14 @@
   <button
     @click="toggleTheme"
     type="button"
-    class="flex h-9 w-9 min-w-9 items-center justify-center rounded-md border border-input bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 px-2"
+    class="theme-toggle flex h-9 w-9 min-w-9 items-center justify-center rounded-md border border-input bg-gray-900 text-white dark:bg-white dark:text-gray-900 hover:bg-purple-600 dark:hover:bg-purple-500 hover:border-purple-400 dark:hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 px-2 transition-all duration-300"
     aria-label="Toggle theme"
   >
     <!-- Moon icon (shown in light mode) -->
     <svg
       v-if="isDarkMode"
       xmlns="http://www.w3.org/2000/svg"
-      class="h-[1.2rem] w-[1.2rem]"
+      class="icon-moon h-[1.2rem] w-[1.2rem]"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -24,7 +24,7 @@
     <svg
       v-else
       xmlns="http://www.w3.org/2000/svg"
-      class="h-[1.2rem] w-[1.2rem]"
+      class="icon-sun h-[1.2rem] w-[1.2rem]"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -66,5 +66,34 @@ function toggleTheme() {
 <style scoped>
 .min-w-9 {
   min-width: 2.25rem;
+}
+
+.theme-toggle:hover .icon-sun {
+  animation: spin-rays 0.5s ease-in-out;
+}
+
+.theme-toggle:hover .icon-moon {
+  animation: wobble 0.5s ease-in-out;
+}
+
+@keyframes spin-rays {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wobble {
+  0%, 100% {
+    transform: translateX(0%);
+  }
+  25% {
+    transform: translateX(-10%) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(10%) rotate(5deg);
+  }
 }
 </style>
