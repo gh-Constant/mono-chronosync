@@ -59,8 +59,56 @@ const createServer = async () => {
         message: 'Too many login attempts, please try again later.',
     });
     // Will be applied to auth routes in the routes configuration
+    // Apply Helmet middleware for securing HTTP headers
+    app.use((0, helmet_1.default)({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+                fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+                imgSrc: ["'self'", 'data:'],
+                connectSrc: ["'self'"],
+            },
+        },
+        crossOriginEmbedderPolicy: false, // For compatibility with OAuth redirects
+    }));
+    // Configure rate limiting
+    const apiLimiter = (0, express_rate_limit_1.rateLimit)({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        limit: 100, // Limit each IP to 100 requests per window
+        standardHeaders: 'draft-7', // Return rate limit info in the `RateLimit-*` headers
+        legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+        message: 'Too many requests, please try again later.',
+    });
+    // Apply rate limiting to all routes
+    app.use(apiLimiter);
+    // Setup more strict rate limits for auth endpoints
+    const authLimiter = (0, express_rate_limit_1.rateLimit)({
+        windowMs: 60 * 60 * 1000, // 1 hour
+        limit: 10, // 10 login attempts per hour
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+        message: 'Too many login attempts, please try again later.',
+    });
+    // Will be applied to auth routes in the routes configuration
     // CORS middleware with more robust configuration
     app.use((0, cors_1.default)({
+        origin: function (origin, callback) {
+            const allowedOrigins = [
+                'http://localhost:4173',
+                'http://localhost:5173',
+                'https://chronosync.constantsuchet.fr'
+            ];
+            // Allow requests with no origin (like mobile apps, curl requests)
+            if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+                callback(null, true);
+            }
+            else {
+                console.warn(`Origin ${origin} not allowed by CORS`);
+                callback(null, false);
+            }
+        },
         origin: function (origin, callback) {
             const allowedOrigins = [
                 'http://localhost:4173',
@@ -79,11 +127,15 @@ const createServer = async () => {
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With', 'CSRF-Token'],
         exposedHeaders: ['Content-Range', 'X-Content-Range', 'CSRF-Token'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With', 'CSRF-Token'],
+        exposedHeaders: ['Content-Range', 'X-Content-Range', 'CSRF-Token'],
         credentials: true,
         maxAge: 86400 // 24 hours
     }));
     // Ensure OPTIONS requests are handled properly
+    // Ensure OPTIONS requests are handled properly
     app.options('*', (0, cors_1.default)());
+    // JSON Body parser middleware with validation
     // JSON Body parser middleware with validation
     app.use(express_1.default.json());
     app.use((0, cookie_parser_1.default)()); // Add cookie parser middleware
@@ -140,8 +192,14 @@ const createServer = async () => {
     (0, passport_2.configurePassport)();
     // Export auth rate limiter for use in route configuration
     app.locals.authLimiter = authLimiter;
+    // Export auth rate limiter for use in route configuration
+    app.locals.authLimiter = authLimiter;
     // Mount all routes under /api
     app.use('/api', routes_1.default);
+    // Add health check endpoint
+    app.get('/api/health', (req, res) => {
+        res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
     // Add health check endpoint
     app.get('/api/health', (req, res) => {
         res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });

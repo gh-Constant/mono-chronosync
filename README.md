@@ -90,10 +90,22 @@ See [Prerequisites](./docs/getting-started/prerequisites.md) for complete requir
 ```bash
 git clone https://github.com/yourusername/chronosync.git
 cd chronosync
+git clone https://github.com/yourusername/chronosync.git
+cd chronosync
 ```
 
 2. Set up the frontend:
+2. Set up the frontend:
 ```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Create and configure .env file
+cp .env.example .env
+# Edit .env with your settings
 # Navigate to frontend directory
 cd frontend
 
@@ -106,7 +118,21 @@ cp .env.example .env
 ```
 
 3. Set up the backend:
+3. Set up the backend:
 ```bash
+# Navigate to backend directory
+cd ../backend
+
+# Install dependencies
+npm install
+
+# Create and configure .env file
+cp .env.example .env
+# Edit .env with your settings
+```
+
+4. Start the development servers:
+
 # Navigate to backend directory
 cd ../backend
 
