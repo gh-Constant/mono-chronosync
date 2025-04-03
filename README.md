@@ -1,28 +1,89 @@
 # ChronoSync
 
-This is a monorepo for the ChronoSync project managed with Nx and PNPM workspaces.
+<div align="center">
+
+<img src="./packages/web/frontend/src/assets/chronosync-logo.svg" alt="ChronoSync Logo" width="250" height="250">
+
+**A cross-platform time synchronization and scheduling application**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./docs/contributing/guidelines.md)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.x-42b883.svg)](https://vuejs.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.x-000000.svg)](https://expressjs.com/)
+
+</div>
+
+## About ChronoSync
+
+ChronoSync is a comprehensive time management and scheduling application designed to help individuals and teams synchronize their schedules across multiple platforms. Built with modern web technologies and following a monorepo architecture, ChronoSync offers a seamless experience on web, desktop, and mobile devices.
+
+### Key Features
+
+- **User Authentication**: Secure login with email/password and OAuth providers (Google, GitHub)
+- **Profile Management**: Personalized user profiles and preferences
+- **Dashboard**: Interactive dashboard with schedule visualization
+- **Cross-Platform**: Available on web, desktop (Windows, macOS, Linux), and mobile (Android, iOS)
+- **RGPD Compliance**: Built with privacy and data protection in mind
+
+## Documentation
+
+Comprehensive documentation is available in the [docs](./docs) directory:
+
+| Category | Documentation |
+|----------|---------------|
+| **Overview** | [Project Overview](./docs/overview/project-overview.md) <br> [Architecture](./docs/overview/architecture.md) <br> [Technology Stack](./docs/overview/technology-stack.md) |
+| **Getting Started** | [Prerequisites](./docs/getting-started/prerequisites.md) <br> [Installation](./docs/getting-started/installation.md) <br> [Running the App](./docs/getting-started/running-the-app.md) |
+| **Development** | [Monorepo Structure](./docs/monorepo/structure.md) <br> [Development Workflow](./docs/workflow/development.md) |
+| **Web Application** | [Frontend Overview](./docs/web/frontend/overview.md) <br> [Backend Overview](./docs/web/backend/overview.md) <br> [Common Package](./docs/web/common/overview.md) |
+| **API** | [API Reference](./docs/api/overview.md) |
+| **Deployment** | [Deployment Guide](./docs/deployment/overview.md) |
+| **Contributing** | [Contributing Guidelines](./docs/contributing/guidelines.md) |
 
 ## Project Structure
 
-- `packages/desktop`: Desktop application
-  - `packages/desktop/windows`: Windows-specific implementation
-  - `packages/desktop/mac`: macOS-specific implementation
-  - `packages/desktop/linux`: Linux-specific implementation
-- `packages/mobile`: Mobile application
-  - `packages/mobile/android`: Android-specific implementation
-  - `packages/mobile/ios`: iOS-specific implementation
-- `packages/shared`: Shared utilities and components
-- `packages/web`: Web application
-  - `packages/web/backend`: Backend API
-  - `packages/web/common`: Common web utilities
-  - `packages/web/frontend`: Frontend application
+ChronoSync follows a monorepo architecture managed with Nx and PNPM workspaces. For detailed information about the project structure, see the [Monorepo Structure](./docs/monorepo/structure.md) documentation.
+
+```
+chronosync/
+├── packages/
+│   ├── desktop/            # Desktop applications
+│   │   ├── windows/        # Windows implementation
+│   │   ├── mac/            # macOS implementation
+│   │   └── linux/          # Linux implementation
+│   ├── mobile/             # Mobile applications
+│   │   ├── android/        # Android implementation
+│   │   └── ios/            # iOS implementation
+│   ├── shared/             # Shared utilities and components
+│   └── web/                # Web application
+│       ├── backend/        # Express.js backend API
+│       ├── common/         # Shared web utilities and types
+│       └── frontend/       # Vue.js frontend application
+└── docs/                   # Project documentation
+```
+
+## Technology Stack
+
+ChronoSync is built with modern technologies:
+
+- **Frontend**: Vue.js 3, Pinia, Vue Router, Axios
+- **Backend**: Express.js, PostgreSQL, JWT, Passport.js
+- **Common**: TypeScript, Shared types and utilities
+- **Build Tools**: Nx, PNPM, Vite, TypeScript
+- **Testing**: Vitest
+
+For a complete overview of the technology stack, see the [Technology Stack](./docs/overview/technology-stack.md) documentation.
 
 ## Getting Started
+
+For detailed setup instructions, see the [Getting Started Guide](./docs/getting-started/installation.md).
 
 ### Prerequisites
 
 - Node.js 16+
 - PNPM 8+
+- PostgreSQL 12+
+
+See [Prerequisites](./docs/getting-started/prerequisites.md) for complete requirements.
 
 ### Installation
 
@@ -171,3 +232,35 @@ Nx provides caching for your tasks, making subsequent runs faster:
 # Run tests for affected projects only
 nx affected --target=test
 ```
+
+## Current Status
+
+ChronoSync is currently in active development with the web application being the most mature component. The desktop and mobile applications are in the planning or early development stages.
+
+### Roadmap
+
+- [x] Web application core functionality
+- [x] Authentication system
+- [x] User dashboard
+- [ ] Calendar integration
+- [ ] Team collaboration features
+- [ ] Desktop applications
+- [ ] Mobile applications
+
+## Contributing
+
+We welcome contributions to ChronoSync! Whether you're fixing bugs, improving documentation, or proposing new features, your contributions are welcome.
+
+Please see our [Contributing Guidelines](./docs/contributing/guidelines.md) for more information on how to get involved.
+
+## Development Workflow
+
+For information on our development workflow, coding standards, and more, see the [Development Workflow](./docs/workflow/development.md) documentation.
+
+## Support
+
+If you encounter any issues or have questions, please [open an issue](https://github.com/yourusername/chronosync/issues) on GitHub.
+
+## License
+
+ChronoSync is [MIT licensed](LICENSE).
