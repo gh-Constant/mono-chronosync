@@ -1,19 +1,40 @@
 <script setup lang="ts">
+import SettingsLayout from '@/components/layout/settings/SettingsLayout.vue'
+import AccountSettings from '@/components/layout/settings/sections/AccountSettings.vue'
+import AppearanceSettings from '@/components/layout/settings/sections/AppearanceSettings.vue'
+import AppSettings from '@/components/layout/settings/sections/AppSettings.vue'
+import NotificationSettings from '@/components/layout/settings/sections/NotificationSettings.vue'
+import PrivacySettings from '@/components/layout/settings/sections/PrivacySettings.vue'
 import DashboardLayout from '@/components/layout/dashboard/DashboardLayout.vue'
 </script>
 
 <template>
   <DashboardLayout>
-    <!-- Page Header -->
-    <div class="mb-8">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-      <p class="mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-400">Manage your account and preferences</p>
-    </div>
-
-    <!-- Settings Content -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-      <h2 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">Account Settings</h2>
-      <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Settings implementation goes here</p>
+    <div class="p-4 md:p-6 max-w-7xl mx-auto">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+        Settings
+      </h1>
+      <SettingsLayout>
+        <template #account>
+          <AccountSettings />
+        </template>
+        <template #appearance>
+          <AppearanceSettings />
+        </template>
+        <template #privacy>
+          <PrivacySettings />
+        </template>
+        <template #notifications>
+          <NotificationSettings />
+        </template>
+        <template #app>
+          <AppSettings />
+        </template>
+      </SettingsLayout>
     </div>
   </DashboardLayout>
-</template> 
+</template>
+
+<style scoped>
+/* Add any specific styles for this view if needed */
+</style> 

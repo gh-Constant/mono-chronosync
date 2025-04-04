@@ -37,14 +37,22 @@ export const createServer = async (): Promise<Application> => {
     crossOriginEmbedderPolicy: false, // For compatibility with OAuth redirects
   }));
 
-  // Configure rate limiting
-  const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 100, // Limit each IP to 100 requests per window
-    standardHeaders: 'draft-7', // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    message: 'Too many requests, please try again later.',
-  });
+  // Configure rate limiting based on environment
+  const apiLimiter = process.env.NODE_ENV !== 'production'
+    ? rateLimit({
+        windowMs: 60 * 1000, // 1 minute (for development)
+        limit: 1000, // Allow 1000 requests per minute (for development)
+        message: 'Development rate limit exceeded (should be rare).',
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+      })
+    : rateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes (production)
+        limit: 100, // Limit each IP to 100 requests per 15 minutes (production)
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+        message: 'Too many requests, please try again later.',
+      });
 
   // Apply rate limiting to all routes
   app.use(apiLimiter);
